@@ -4,3 +4,5 @@ dist
 .env
 *.tar.gz
 .prisma
+.qa
+output

@@ -7,18 +7,22 @@ const nav = [
   ["Pedidos", "/pedidos"],
   ["Cozinha", "/cozinha"],
   ["Inbox", "/inbox"],
-  ["Cardápio", "/cardapio"],
+  ["Cardapio", "/cardapio"],
   ["Clientes", "/clientes"],
   ["Entregas", "/entregas"],
   ["Financeiro", "/financeiro"],
-  ["Configurações", "/configuracoes"],
+  ["Configuracoes", "/configuracoes"],
+  ["Guia visual", "/style-guide"],
 ];
 
-// Páginas sem o painel (sidebar): cardápio público e login.
 const bare = (p: string) => p.startsWith("/pedir") || p === "/login";
 
 function Logo() {
-  return <div className="text-lg font-bold">ZAPYE <span style={{ color: "var(--accent)" }}>Food</span></div>;
+  return (
+    <a href="/dashboard" className="logo-ticket brand-wordmark text-xl" aria-label="ZAPYE Food">
+      <span>ZAPYE<br /><span className="brand-food">Food</span></span>
+    </a>
+  );
 }
 
 export default function Shell({ children }: { children: ReactNode }) {
@@ -27,38 +31,49 @@ export default function Shell({ children }: { children: ReactNode }) {
   if (bare(pathname)) return <>{children}</>;
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
-    <nav className="flex flex-col gap-1">
-      {nav.map(([label, href]) => (
-        <a key={href} href={href} onClick={onClick}
-          className="rounded-lg px-3 py-2 text-sm hover:bg-white/5"
-          style={{ color: pathname.startsWith(href) ? "var(--text)" : "var(--muted)", background: pathname.startsWith(href) ? "rgba(255,255,255,0.05)" : "transparent" }}>
-          {label}
-        </a>
-      ))}
+    <nav className="flex flex-col gap-1.5">
+      {nav.map(([label, href]) => {
+        const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+        return (
+          <a
+            key={href}
+            href={href}
+            onClick={onClick}
+            className={`nav-tab px-3 py-2 ${active ? "nav-tab-active" : ""}`}
+          >
+            {label}
+          </a>
+        );
+      })}
     </nav>
   );
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      {/* Topbar (mobile) */}
-      <header className="flex items-center justify-between border-b p-3 md:hidden" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+      <header className="app-sidebar sticky top-0 z-40 flex items-center justify-between border-b p-3 md:hidden" style={{ borderColor: "var(--border)" }}>
         <Logo />
-        <button onClick={() => setOpen((o) => !o)} aria-label="Menu"
-          className="rounded-lg border px-3 py-1.5 text-lg leading-none" style={{ borderColor: "var(--border)" }}>
-          {open ? "✕" : "☰"}
+        <button
+          onClick={() => setOpen((o) => !o)}
+          aria-label="Menu"
+          className="secondary-button px-3 py-2 text-lg leading-none"
+        >
+          {open ? "x" : "☰"}
         </button>
       </header>
 
-      {/* Menu dropdown (mobile) */}
       {open && (
-        <div className="border-b p-3 md:hidden" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+        <div className="app-sidebar border-b p-3 md:hidden" style={{ borderColor: "var(--border)" }}>
           <NavLinks onClick={() => setOpen(false)} />
         </div>
       )}
 
-      {/* Sidebar (desktop) */}
-      <aside className="hidden w-56 shrink-0 border-r p-4 md:block" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-        <div className="mb-6"><Logo /></div>
+      <aside className="app-sidebar hidden w-60 shrink-0 border-r p-4 md:block" style={{ borderColor: "var(--border)" }}>
+        <div className="mb-8">
+          <Logo />
+          <div className="mt-4 border-t pt-3 text-xs font-bold uppercase" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>
+            Bloco de comandas
+          </div>
+        </div>
         <NavLinks />
       </aside>
 

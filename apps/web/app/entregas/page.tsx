@@ -35,53 +35,55 @@ export default function EntregasPage() {
     load();
   }
 
-  const input = { borderColor: "var(--border)" };
-
   return (
-    <div className="max-w-2xl">
-      <h1 className="mb-1 text-2xl font-bold">Entregas</h1>
-      <p className="mb-6 text-sm" style={{ color: "var(--muted)" }}>Bairros atendidos e taxa de entrega.</p>
+    <div className="max-w-5xl">
+      <h1 className="page-title text-3xl">Entregas</h1>
+      <p className="page-intro mb-5 text-sm">Bairros atendidos em tickets de entrega.</p>
 
-      <form onSubmit={addZone} className="mb-6 flex flex-wrap items-end gap-2 rounded-xl border p-4"
-        style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-        <div className="flex-1">
-          <label className="text-xs" style={{ color: "var(--muted)" }}>Bairro</label>
+      <form onSubmit={addZone} className="receipt-card mb-6 flex flex-wrap items-end gap-3 p-4">
+        <label className="min-w-48 flex-1 text-xs font-bold uppercase muted-ink">
+          Bairro
           <input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)}
-            className="mt-1 w-full rounded-lg border bg-transparent px-3 py-2 text-sm" style={input} placeholder="Centro" />
-        </div>
-        <div className="w-24">
-          <label className="text-xs" style={{ color: "var(--muted)" }}>Taxa R$</label>
+            className="mt-1 w-full border-0 border-b px-2 py-2 text-sm" placeholder="Centro" />
+        </label>
+        <label className="w-28 text-xs font-bold uppercase muted-ink">
+          Taxa R$
           <input value={fee} onChange={(e) => setFee(e.target.value)} type="number" step="0.01"
-            className="mt-1 w-full rounded-lg border bg-transparent px-3 py-2 text-sm" style={input} placeholder="5,00" />
-        </div>
-        <div className="w-28">
-          <label className="text-xs" style={{ color: "var(--muted)" }}>Pedido mín.</label>
+            className="mt-1 w-full border-0 border-b px-2 py-2 text-sm" placeholder="5,00" />
+        </label>
+        <label className="w-32 text-xs font-bold uppercase muted-ink">
+          Pedido min.
           <input value={minOrder} onChange={(e) => setMinOrder(e.target.value)} type="number" step="0.01"
-            className="mt-1 w-full rounded-lg border bg-transparent px-3 py-2 text-sm" style={input} placeholder="0,00" />
-        </div>
-        <button className="rounded-lg px-4 py-2 text-sm font-semibold text-black" style={{ background: "var(--accent)" }}>
-          Adicionar
-        </button>
+            className="mt-1 w-full border-0 border-b px-2 py-2 text-sm" placeholder="0,00" />
+        </label>
+        <button className="stamp-button px-4 py-2 text-sm">Adicionar</button>
       </form>
 
-      <div className="rounded-xl border" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-        {zones.length === 0 && <p className="p-4 text-sm" style={{ color: "var(--muted)" }}>Nenhum bairro cadastrado.</p>}
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {zones.length === 0 && <div className="receipt-card p-4 text-sm muted-ink">Nenhum bairro cadastrado.</div>}
         {zones.map((z) => (
-          <div key={z.id} className="flex items-center justify-between border-b p-3 last:border-0" style={{ borderColor: "var(--border)" }}>
-            <div>
-              <div className="font-semibold" style={{ opacity: z.active ? 1 : 0.5 }}>{z.neighborhood}</div>
-              <div className="text-xs" style={{ color: "var(--muted)" }}>
-                Taxa R$ {Number(z.fee).toFixed(2)}{Number(z.minOrder) > 0 && ` · mín. R$ ${Number(z.minOrder).toFixed(2)}`}
+          <article key={z.id} className="ticket-card p-4" style={{ opacity: z.active ? 1 : 0.58 }}>
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="page-title text-xl">{z.neighborhood}</h2>
+                <p className="text-xs muted-ink">Ticket de entrega</p>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => toggle(z)} className="rounded-lg px-3 py-1 text-xs font-semibold"
-                style={{ background: z.active ? "var(--accent)" : "var(--border)", color: z.active ? "#000" : "var(--muted)" }}>
+              <button onClick={() => toggle(z)} className={z.active ? "stamp stamp-green" : "stamp stamp-red"}>
                 {z.active ? "Ativo" : "Inativo"}
               </button>
-              <button onClick={() => remove(z)} className="text-xs" style={{ color: "var(--accent-warn)" }}>Remover</button>
             </div>
-          </div>
+            <div className="receipt-divider flex justify-between pt-3 text-sm">
+              <span className="muted-ink">Taxa</span>
+              <span className="price">R$ {Number(z.fee).toFixed(2)}</span>
+            </div>
+            {Number(z.minOrder) > 0 && (
+              <div className="flex justify-between pt-2 text-sm">
+                <span className="muted-ink">Pedido min.</span>
+                <span className="price">R$ {Number(z.minOrder).toFixed(2)}</span>
+              </div>
+            )}
+            <button onClick={() => remove(z)} className="mt-4 text-xs font-bold" style={{ color: "var(--danger)" }}>Remover</button>
+          </article>
         ))}
       </div>
     </div>

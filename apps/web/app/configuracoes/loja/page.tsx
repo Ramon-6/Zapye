@@ -35,48 +35,46 @@ export default function LojaPage() {
     setSaved(true);
   }
 
-  if (loading) return <p style={{ color: "var(--muted)" }}>Carregando…</p>;
+  if (loading) return <div className="receipt-card p-5 text-sm muted-ink">Carregando ficha da loja...</div>;
 
-  const inp = "w-full rounded-lg border bg-transparent px-3 py-2 text-sm";
-  const inpS = { borderColor: "var(--border)" };
+  const inp = "w-full border-0 border-b px-2 py-2 text-sm";
   const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div className="mb-3"><label className="mb-1 block text-xs" style={{ color: "var(--muted)" }}>{label}</label>{children}</div>
+    <div className="mb-4"><label className="mb-1 block text-xs font-bold uppercase muted-ink">{label}</label>{children}</div>
   );
   const Toggle = ({ k, label }: { k: keyof Settings; label: string }) => (
-    <button onClick={() => set(k, !s[k])} className="rounded-lg border px-3 py-1.5 text-sm"
-      style={{ borderColor: "var(--border)", background: s[k] ? "var(--accent)" : "transparent", color: s[k] ? "#000" : "var(--text)" }}>
+    <button onClick={() => set(k, !s[k])} className={s[k] ? "stamp stamp-green" : "stamp stamp-red"}>
       {label}
     </button>
   );
 
   return (
-    <div className="max-w-xl">
-      <h1 className="mb-4 text-2xl font-bold">Dados da loja</h1>
-      <div className="rounded-xl border p-5" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-        <Field label="Endereço"><input className={inp} style={inpS} value={s.addressLine ?? ""} onChange={(e) => set("addressLine", e.target.value)} /></Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Chave Pix"><input className={inp} style={inpS} value={s.pixKey ?? ""} onChange={(e) => set("pixKey", e.target.value)} /></Field>
-          <Field label="Nome do recebedor Pix"><input className={inp} style={inpS} value={s.pixKeyName ?? ""} onChange={(e) => set("pixKeyName", e.target.value)} /></Field>
-          <Field label="Tempo médio de entrega (min)"><input type="number" className={inp} style={inpS} value={s.avgDeliveryMin ?? ""} onChange={(e) => set("avgDeliveryMin", e.target.value)} /></Field>
-          <Field label="Pedido mínimo (R$)"><input type="number" step="0.01" className={inp} style={inpS} value={s.minOrderValue ?? ""} onChange={(e) => set("minOrderValue", e.target.value)} /></Field>
+    <div className="max-w-3xl">
+      <h1 className="page-title mb-5 text-3xl">Dados da loja</h1>
+      <div className="receipt-card p-5">
+        <Field label="Endereco"><input className={inp} value={s.addressLine ?? ""} onChange={(e) => set("addressLine", e.target.value)} /></Field>
+        <div className="grid gap-3 md:grid-cols-2">
+          <Field label="Chave Pix"><input className={inp} value={s.pixKey ?? ""} onChange={(e) => set("pixKey", e.target.value)} /></Field>
+          <Field label="Nome do recebedor Pix"><input className={inp} value={s.pixKeyName ?? ""} onChange={(e) => set("pixKeyName", e.target.value)} /></Field>
+          <Field label="Tempo medio de entrega (min)"><input type="number" className={inp} value={s.avgDeliveryMin ?? ""} onChange={(e) => set("avgDeliveryMin", e.target.value)} /></Field>
+          <Field label="Pedido minimo (R$)"><input type="number" step="0.01" className={inp} value={s.minOrderValue ?? ""} onChange={(e) => set("minOrderValue", e.target.value)} /></Field>
         </div>
 
         <Field label="Formas de pagamento aceitas">
           <div className="flex flex-wrap gap-2">
             <Toggle k="acceptsPix" label="Pix" />
             <Toggle k="acceptsCash" label="Dinheiro" />
-            <Toggle k="acceptsCard" label="Cartão" />
+            <Toggle k="acceptsCard" label="Cartao" />
             <Toggle k="acceptsPickup" label="Retirada" />
           </div>
         </Field>
 
-        <Field label="Mensagem de saudação"><textarea className={inp} style={inpS} rows={2} value={s.greetingMessage ?? ""} onChange={(e) => set("greetingMessage", e.target.value)} /></Field>
-        <Field label="Mensagem de loja fechada"><textarea className={inp} style={inpS} rows={2} value={s.closingMessage ?? ""} onChange={(e) => set("closingMessage", e.target.value)} /></Field>
-        <Field label="Política de entrega"><textarea className={inp} style={inpS} rows={2} value={s.deliveryPolicy ?? ""} onChange={(e) => set("deliveryPolicy", e.target.value)} /></Field>
+        <Field label="Mensagem de saudacao"><textarea className={inp} rows={2} value={s.greetingMessage ?? ""} onChange={(e) => set("greetingMessage", e.target.value)} /></Field>
+        <Field label="Mensagem de loja fechada"><textarea className={inp} rows={2} value={s.closingMessage ?? ""} onChange={(e) => set("closingMessage", e.target.value)} /></Field>
+        <Field label="Politica de entrega"><textarea className={inp} rows={2} value={s.deliveryPolicy ?? ""} onChange={(e) => set("deliveryPolicy", e.target.value)} /></Field>
 
-        <div className="flex items-center gap-3">
-          <button onClick={save} className="rounded-lg px-4 py-2 text-sm font-semibold text-black" style={{ background: "var(--accent)" }}>Salvar</button>
-          {saved && <span className="text-sm" style={{ color: "var(--accent)" }}>Salvo ✓</span>}
+        <div className="receipt-divider flex items-center gap-3 pt-4">
+          <button onClick={save} className="stamp-button px-4 py-2 text-sm">Salvar</button>
+          {saved && <span className="stamp stamp-green">Salvo</span>}
         </div>
       </div>
     </div>

@@ -8,7 +8,6 @@ type Order = {
   items: { productName: string; quantity: number; notes: string | null }[];
 };
 
-// Próximo status no fluxo da cozinha.
 const NEXT: Record<string, string> = {
   PAGO: "EM_PREPARO",
   EM_PREPARO: "PRONTO",
@@ -20,6 +19,12 @@ const LABEL: Record<string, string> = {
   PRONTO: "Saiu p/ entrega",
 };
 
+const statusStamp = (status: string) => {
+  if (status === "EM_PREPARO") return "stamp-yellow";
+  if (status === "PRONTO") return "stamp-green";
+  return "stamp-blue";
+};
+
 export default function CozinhaPage() {
   const [orders, setOrders] = useState<Order[]>([]);
 
@@ -27,7 +32,6 @@ export default function CozinhaPage() {
     api<Order[]>("/orders?today=true").then(setOrders).catch(() => {});
   }, []);
 
-  // Polling simples a cada 5s (v1). v2: SSE/WebSocket.
   useEffect(() => {
     load();
     const t = setInterval(load, 5000);
@@ -45,30 +49,37 @@ export default function CozinhaPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold">Painel da Cozinha</h1>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {cooking.length === 0 && <p style={{ color: "var(--muted)" }}>Nenhum pedido na cozinha.</p>}
+      <div className="mb-5">
+        <h1 className="page-title text-3xl">Painel da Cozinha</h1>
+        <p className="page-intro text-sm">Comandas grandes, legiveis e prontas para avancar no fluxo.</p>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {cooking.length === 0 && (
+          <div className="receipt-card p-5 text-sm muted-ink">Nenhum pedido na cozinha.</div>
+        )}
         {cooking.map((o) => (
-          <div key={o.id} className="rounded-xl border p-4" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-lg font-bold">#{o.code}</span>
-              <span className="rounded-full px-2 py-0.5 text-xs" style={{ background: "var(--border)", color: "var(--muted)" }}>{o.status}</span>
+          <article key={o.id} className="receipt-card p-4">
+            <div className="receipt-header mb-3 flex items-start justify-between pb-3">
+              <div>
+                <div className="page-title text-2xl">#{o.code}</div>
+                <div className="text-xs muted-ink">{o.client.name ?? "Cliente"}</div>
+              </div>
+              <span className={`stamp ${statusStamp(o.status)}`}>{o.status.replaceAll("_", " ")}</span>
             </div>
-            <div className="mb-2 text-xs" style={{ color: "var(--muted)" }}>{o.client.name ?? "Cliente"}</div>
-            <ul className="mb-3 space-y-1 text-sm">
+            <ul className="mb-4 space-y-2 text-sm">
               {o.items.map((it, i) => (
-                <li key={i}>
-                  <span className="font-semibold">{it.quantity}x</span> {it.productName}
-                  {it.notes && <span style={{ color: "var(--accent-warn)" }}> · {it.notes}</span>}
+                <li key={i} className="notebook-line pb-2">
+                  <span className="mono-value mr-2">{it.quantity}x</span>{it.productName}
+                  {it.notes && <div className="highlight-note mt-1 p-2 text-xs">{it.notes}</div>}
                 </li>
               ))}
             </ul>
             {NEXT[o.status] && (
-              <button onClick={() => advance(o)} className="w-full rounded-lg py-2 text-sm font-semibold text-black" style={{ background: "var(--accent)" }}>
+              <button onClick={() => advance(o)} className="stamp-button w-full px-4 py-3 text-sm">
                 {LABEL[o.status]}
               </button>
             )}
-          </div>
+          </article>
         ))}
       </div>
     </div>

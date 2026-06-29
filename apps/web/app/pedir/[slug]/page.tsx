@@ -31,7 +31,6 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
   const [placing, setPlacing] = useState(false); const [err, setErr] = useState<string>();
   const [order, setOrder] = useState<any>(null); const [qrImg, setQrImg] = useState<string>();
   const [paid, setPaid] = useState(false);
-  // modal de produto (variações + adicionais + obs)
   const [modal, setModal] = useState<Product | null>(null);
   const [mVar, setMVar] = useState<string>(); const [mAddons, setMAddons] = useState<string[]>([]);
   const [mQty, setMQty] = useState(1); const [mNotes, setMNotes] = useState("");
@@ -54,7 +53,6 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
   function addProduct(p: Product, variationId?: string, addonIds: string[] = [], quantity = 1, notes?: string) {
     setCart((c) => [...c, { key: Math.random().toString(36).slice(2), product: p, variationId, addonIds, quantity, notes, unit: unitPrice(p, variationId, addonIds) }]);
   }
-  // abre modal se houver opções; senão adiciona direto
   function openProduct(p: Product) {
     if (p.addons.length === 0 && p.variations.length === 0) { addProduct(p); return; }
     setModal(p); setMVar(p.variations[0]?.id); setMAddons([]); setMQty(1); setMNotes("");
@@ -98,37 +96,36 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
     setPaid(true);
   }
 
-  const card = { borderColor: "var(--border)", background: "var(--surface)" };
-  const inp = "w-full rounded-lg border bg-transparent px-3 py-2 text-sm"; const inpS = { borderColor: "var(--border)" };
+  const inp = "w-full border-0 border-b px-2 py-2 text-sm";
 
-  // ---- Tela de confirmação / pagamento ----
   if (order) {
     return (
       <div className="mx-auto max-w-md p-5">
-        <div className="rounded-2xl border p-6 text-center" style={card}>
+        <div className="receipt-card p-6 text-center">
           {paid ? (
             <>
-              <div className="text-4xl">✅</div>
-              <h1 className="mt-2 text-xl font-bold">Pagamento confirmado!</h1>
-              <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Pedido #{order.code} enviado para a cozinha.</p>
+              <span className="stamp stamp-green">Pago</span>
+              <h1 className="page-title mt-3 text-2xl">Pagamento confirmado!</h1>
+              <p className="mt-1 text-sm muted-ink">Pedido #{order.code} enviado para a cozinha.</p>
             </>
           ) : order.pix ? (
             <>
-              <h1 className="text-xl font-bold">Pague com Pix</h1>
-              <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Pedido #{order.code} · {brl(order.total)}</p>
+              <span className="stamp stamp-blue">Pix</span>
+              <h1 className="page-title mt-3 text-2xl">Pague com Pix</h1>
+              <p className="mt-1 text-sm muted-ink">Pedido #{order.code} - <span className="price">{brl(order.total)}</span></p>
               {qrImg && <img src={qrImg} alt="QR Pix" className="mx-auto my-4 rounded-lg bg-white p-2" />}
-              <textarea readOnly value={order.pix.code} className="h-20 w-full rounded-lg border bg-transparent p-2 text-xs" style={inpS} />
-              <p className="mt-2 text-xs" style={{ color: "var(--accent-warn)" }}>Pix de TESTE (virtual). Clique abaixo para simular o pagamento.</p>
-              <button onClick={simulatePay} className="mt-3 w-full rounded-lg py-3 font-semibold text-black" style={{ background: "var(--accent)" }}>
-                Já paguei (simular)
+              <textarea readOnly value={order.pix.code} className="h-20 w-full border-0 border-b p-2 text-xs" />
+              <p className="highlight-note mt-3 p-2 text-xs">Pix de TESTE. Clique abaixo para simular o pagamento.</p>
+              <button onClick={simulatePay} className="stamp-button mt-3 w-full px-4 py-3 text-sm">
+                Ja paguei (simular)
               </button>
             </>
           ) : (
             <>
-              <div className="text-4xl">🧾</div>
-              <h1 className="mt-2 text-xl font-bold">Pedido #{order.code} enviado!</h1>
-              <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-                Total {brl(order.total)} · pagamento na {deliveryType === "ENTREGA" ? "entrega" : "retirada"}.
+              <span className="stamp stamp-green">Enviado</span>
+              <h1 className="page-title mt-3 text-2xl">Pedido #{order.code} enviado!</h1>
+              <p className="mt-1 text-sm muted-ink">
+                Total <span className="price">{brl(order.total)}</span> - pagamento na {deliveryType === "ENTREGA" ? "entrega" : "retirada"}.
               </p>
             </>
           )}
@@ -137,110 +134,117 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
     );
   }
 
-  // ---- Cardápio + carrinho ----
   return (
-    <div className="mx-auto max-w-2xl p-4 pb-40">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold">{info?.name ?? "Cardápio"}</h1>
-        <p className="text-sm" style={{ color: info?.isOpen ? "var(--accent)" : "var(--accent-warn)" }}>
-          {info ? (info.isOpen ? "● Aberto agora" : "● Fechado no momento") : "…"}
-        </p>
-      </div>
+    <div className="mx-auto max-w-3xl p-4 pb-56">
+      <header className="receipt-card mb-5 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="brand-wordmark text-4xl">{info?.name ?? "ZAPYE"}<br /><span className="brand-food">Food</span></div>
+            <p className="mt-2 text-sm muted-ink">Cardapio digital em papel de restaurante.</p>
+          </div>
+          <span className={info?.isOpen ? "stamp stamp-green" : "stamp stamp-yellow"}>
+            {info ? (info.isOpen ? "Aberto" : "Fechado") : "..."}
+          </span>
+        </div>
+      </header>
+
+      {menu.length === 0 && <div className="receipt-card p-5 text-sm muted-ink">Carregando cardapio...</div>}
 
       {menu.map((c) => (
-        <section key={c.id} className="mb-5">
-          <h2 className="mb-2 text-lg font-semibold">{c.name}</h2>
-          <div className="grid gap-2">
+        <section key={c.id} className="mb-6">
+          <div className="mb-3 flex items-center gap-3">
+            <h2 className="page-title text-2xl">{c.name}</h2>
+            <div className="h-px flex-1 border-t border-dashed" style={{ borderColor: "var(--border)" }} />
+          </div>
+          <div className="grid gap-3">
             {c.products.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded-xl border p-3" style={card}>
-                <div className="pr-2">
-                  <div className="font-semibold">{p.name}</div>
-                  {p.description && <div className="text-xs" style={{ color: "var(--muted)" }}>{p.description}</div>}
-                  <div className="mt-1 text-sm" style={{ color: "var(--accent)" }}>{brl(p.price)}</div>
+              <article key={p.id} className="ticket-card flex items-center gap-3 p-3">
+                <div className="food-thumb h-20 w-20 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-black">{p.name}</h3>
+                  {p.description && <p className="text-xs muted-ink">{p.description}</p>}
+                  <div className="price mt-1 text-lg">{brl(p.price)}</div>
                 </div>
-                <button onClick={() => openProduct(p)} className="rounded-lg px-3 py-2 text-sm font-bold text-black" style={{ background: "var(--accent)" }}>+</button>
-              </div>
+                <button onClick={() => openProduct(p)} className="stamp-button h-11 w-11 shrink-0 text-xl">+</button>
+              </article>
             ))}
           </div>
         </section>
       ))}
 
-      {/* Carrinho + checkout fixo embaixo */}
       {cart.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 mx-auto max-w-2xl border-t p-4" style={{ ...card, borderColor: "var(--border)" }}>
-          <div className="mb-2 max-h-32 overflow-auto">
-            {cart.map((l) => (
-              <div key={l.key} className="flex items-center justify-between py-1 text-sm">
-                <span>{l.product.name}</span>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => setQty(l.key, l.quantity - 1)} className="px-2">−</button>
-                  <span>{l.quantity}</span>
-                  <button onClick={() => setQty(l.key, l.quantity + 1)} className="px-2">+</button>
-                  <span style={{ color: "var(--accent)" }}>{brl(l.unit * l.quantity)}</span>
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-3xl border-t p-4" style={{ background: "rgba(245, 230, 211, 0.94)", borderColor: "var(--border)", backdropFilter: "blur(8px)" }}>
+          <div className="receipt-card p-4">
+            <div className="mb-2 max-h-32 overflow-auto">
+              {cart.map((l) => (
+                <div key={l.key} className="notebook-line flex items-center justify-between gap-2 py-1 text-sm">
+                  <span>{l.product.name}</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setQty(l.key, l.quantity - 1)} className="secondary-button px-2">-</button>
+                    <span className="mono-value">{l.quantity}</span>
+                    <button onClick={() => setQty(l.key, l.quantity + 1)} className="secondary-button px-2">+</button>
+                    <span className="price">{brl(l.unit * l.quantity)}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <input className={inp} style={inpS} placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} />
-            <input className={inp} style={inpS} placeholder="WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
-
-          <div className="mt-2 flex gap-2 text-sm">
-            {(["ENTREGA", "RETIRADA"] as const).map((t) => (
-              <button key={t} onClick={() => setDeliveryType(t)} className="flex-1 rounded-lg border py-2"
-                style={{ borderColor: "var(--border)", background: deliveryType === t ? "var(--accent)" : "transparent", color: deliveryType === t ? "#000" : "var(--text)" }}>
-                {t === "ENTREGA" ? "Entrega" : "Retirada"}
-              </button>
-            ))}
-          </div>
-
-          {deliveryType === "ENTREGA" && (
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <select className={inp} style={inpS} value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)}>
-                <option value="">Bairro…</option>
-                {zones.map((z) => <option key={z.id} value={z.neighborhood}>{z.neighborhood} (+{brl(z.fee)})</option>)}
-              </select>
-              <input className={inp} style={inpS} placeholder="Rua" value={street} onChange={(e) => setStreet(e.target.value)} />
-              <input className={inp} style={inpS} placeholder="Número" value={number} onChange={(e) => setNumber(e.target.value)} />
+              ))}
             </div>
-          )}
 
-          <div className="mt-2 flex gap-2 text-sm">
-            {(["PIX", "DINHEIRO", "CARTAO"] as const).map((m) => (
-              <button key={m} onClick={() => setPayment(m)} className="flex-1 rounded-lg border py-2"
-                style={{ borderColor: "var(--border)", background: payment === m ? "var(--accent)" : "transparent", color: payment === m ? "#000" : "var(--text)" }}>
-                {m === "PIX" ? "Pix agora" : m === "DINHEIRO" ? "Dinheiro" : "Cartão"}
-              </button>
-            ))}
+            <div className="grid grid-cols-2 gap-2">
+              <input className={inp} placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} />
+              <input className={inp} placeholder="WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+
+            <div className="mt-2 flex gap-2 text-sm">
+              {(["ENTREGA", "RETIRADA"] as const).map((t) => (
+                <button key={t} onClick={() => setDeliveryType(t)} className={deliveryType === t ? "stamp-button flex-1 py-2" : "secondary-button flex-1 py-2"}>
+                  {t === "ENTREGA" ? "Entrega" : "Retirada"}
+                </button>
+              ))}
+            </div>
+
+            {deliveryType === "ENTREGA" && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <select className={inp} value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)}>
+                  <option value="">Bairro...</option>
+                  {zones.map((z) => <option key={z.id} value={z.neighborhood}>{z.neighborhood} (+{brl(z.fee)})</option>)}
+                </select>
+                <input className={inp} placeholder="Rua" value={street} onChange={(e) => setStreet(e.target.value)} />
+                <input className={inp} placeholder="Numero" value={number} onChange={(e) => setNumber(e.target.value)} />
+              </div>
+            )}
+
+            <div className="mt-2 flex gap-2 text-sm">
+              {(["PIX", "DINHEIRO", "CARTAO"] as const).map((m) => (
+                <button key={m} onClick={() => setPayment(m)} className={payment === m ? "stamp-button flex-1 py-2" : "secondary-button flex-1 py-2"}>
+                  {m === "PIX" ? "Pix agora" : m === "DINHEIRO" ? "Dinheiro" : "Cartao"}
+                </button>
+              ))}
+            </div>
+            {payment === "DINHEIRO" && (
+              <input className={`${inp} mt-2`} placeholder="Troco para quanto? (opcional)" value={changeFor} onChange={(e) => setChangeFor(e.target.value)} />
+            )}
+
+            {err && <p className="highlight-note mt-2 p-2 text-xs">{err}</p>}
+            <button onClick={place} disabled={placing || !name || !phone} className="stamp-button mt-3 w-full px-4 py-3 text-sm disabled:opacity-50">
+              {placing ? "Enviando..." : `Fazer pedido - ${brl(total)}`}
+            </button>
           </div>
-          {payment === "DINHEIRO" && (
-            <input className={`${inp} mt-2`} style={inpS} placeholder="Troco para quanto? (opcional)" value={changeFor} onChange={(e) => setChangeFor(e.target.value)} />
-          )}
-
-          {err && <p className="mt-2 text-xs" style={{ color: "var(--accent-warn)" }}>{err}</p>}
-          <button onClick={place} disabled={placing || !name || !phone} className="mt-3 w-full rounded-lg py-3 font-bold text-black disabled:opacity-50" style={{ background: "var(--accent)" }}>
-            {placing ? "Enviando…" : `Fazer pedido · ${brl(total)}`}
-          </button>
         </div>
       )}
 
-      {/* Modal de produto: variações + adicionais + observação */}
       {modal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4" onClick={() => setModal(null)}>
-          <div className="w-full max-w-md rounded-t-2xl border p-5 sm:rounded-2xl" style={{ borderColor: "var(--border)", background: "var(--surface)" }} onClick={(e) => e.stopPropagation()}>
-            <div className="mb-1 text-lg font-bold">{modal.name}</div>
-            {modal.description && <p className="mb-3 text-xs" style={{ color: "var(--muted)" }}>{modal.description}</p>}
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4" onClick={() => setModal(null)}>
+          <div className="receipt-card w-full max-w-md rounded-t-lg p-5 sm:rounded-lg" onClick={(e) => e.stopPropagation()}>
+            <h2 className="page-title text-2xl">{modal.name}</h2>
+            {modal.description && <p className="mb-3 text-xs muted-ink">{modal.description}</p>}
 
             {modal.variations.length > 0 && (
               <div className="mb-3">
-                <div className="mb-1 text-xs font-semibold" style={{ color: "var(--muted)" }}>Tamanho</div>
+                <div className="mb-2 text-xs font-bold uppercase muted-ink">Tamanho</div>
                 <div className="flex flex-wrap gap-2">
                   {modal.variations.map((v) => (
-                    <button key={v.id} onClick={() => setMVar(v.id)} className="rounded-lg border px-3 py-1.5 text-sm"
-                      style={{ borderColor: "var(--border)", background: mVar === v.id ? "var(--accent)" : "transparent", color: mVar === v.id ? "#000" : "var(--text)" }}>
-                      {v.name} · {brl(v.price)}
+                    <button key={v.id} onClick={() => setMVar(v.id)} className={mVar === v.id ? "stamp-button px-3 py-2 text-sm" : "secondary-button px-3 py-2 text-sm"}>
+                      {v.name} - {brl(v.price)}
                     </button>
                   ))}
                 </div>
@@ -249,29 +253,29 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
 
             {modal.addons.length > 0 && (
               <div className="mb-3">
-                <div className="mb-1 text-xs font-semibold" style={{ color: "var(--muted)" }}>Adicionais</div>
+                <div className="mb-2 text-xs font-bold uppercase muted-ink">Adicionais</div>
                 <div className="grid gap-1.5">
                   {modal.addons.map((a) => (
-                    <label key={a.id} className="flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
+                    <label key={a.id} className="notebook-line flex cursor-pointer items-center justify-between py-2 text-sm">
                       <span><input type="checkbox" checked={mAddons.includes(a.id)} onChange={() => toggleAddon(a.id)} className="mr-2 align-middle" />{a.name}</span>
-                      <span style={{ color: "var(--accent)" }}>+{brl(a.price)}</span>
+                      <span className="price">+{brl(a.price)}</span>
                     </label>
                   ))}
                 </div>
               </div>
             )}
 
-            <input value={mNotes} onChange={(e) => setMNotes(e.target.value)} placeholder="Observação (ex: sem cebola)"
-              className="mb-3 w-full rounded-lg border bg-transparent px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }} />
+            <input value={mNotes} onChange={(e) => setMNotes(e.target.value)} placeholder="Observacao (ex: sem cebola)"
+              className="mb-3 w-full border-0 border-b px-2 py-2 text-sm" />
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button onClick={() => setMQty((q) => Math.max(1, q - 1))} className="rounded-lg border px-3 py-1 text-lg" style={{ borderColor: "var(--border)" }}>−</button>
-                <span className="w-6 text-center font-semibold">{mQty}</span>
-                <button onClick={() => setMQty((q) => q + 1)} className="rounded-lg border px-3 py-1 text-lg" style={{ borderColor: "var(--border)" }}>+</button>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button onClick={() => setMQty((q) => Math.max(1, q - 1))} className="secondary-button px-3 py-1 text-lg">-</button>
+                <span className="mono-value w-6 text-center">{mQty}</span>
+                <button onClick={() => setMQty((q) => q + 1)} className="secondary-button px-3 py-1 text-lg">+</button>
               </div>
-              <button onClick={confirmModal} className="rounded-lg px-5 py-2.5 font-bold text-black" style={{ background: "var(--accent)" }}>
-                Adicionar · {brl(unitPrice(modal, mVar, mAddons) * mQty)}
+              <button onClick={confirmModal} className="stamp-button px-5 py-3 text-sm">
+                Adicionar - {brl(unitPrice(modal, mVar, mAddons) * mQty)}
               </button>
             </div>
           </div>

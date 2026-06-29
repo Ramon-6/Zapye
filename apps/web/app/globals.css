@@ -3,17 +3,363 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0a0a0a;
-  --surface: #141414;
-  --border: #262626;
-  --text: #fafafa;
-  --muted: #a3a3a3;
-  --accent: #22c55e; /* verde discreto */
-  --accent-warn: #eab308; /* amarelo */
+  --bg: #f5e6d3;
+  --surface: #fdf8f0;
+  --surface-strong: #ead9c0;
+  --border: #d4c4a8;
+  --text: #2d2418;
+  --muted: #8b7355;
+  --accent: #84cc16;
+  --accent-dark: #65a30d;
+  --accent-warn: #d97706;
+  --danger: #dc2626;
+  --info: #2563eb;
+  --shadow-paper: 0 18px 45px rgba(45, 36, 24, 0.12), 0 2px 0 rgba(45, 36, 24, 0.05);
+  --shadow-ticket: 0 10px 24px rgba(45, 36, 24, 0.10);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
 }
 
 body {
-  background: var(--bg);
+  min-height: 100vh;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(45, 36, 24, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 36, 24, 0.018) 1px, transparent 1px),
+    url("/textures/kraft-paper.svg");
+  background-size: 42px 42px, 42px 42px, 220px 220px;
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+::selection {
+  background: rgba(132, 204, 22, 0.35);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease, opacity 140ms ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input,
+select,
+textarea {
+  background: rgba(253, 248, 240, 0.72) !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 3px 0 rgba(132, 204, 22, 0.24);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(139, 115, 85, 0.72);
+}
+
+option {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.brand-wordmark {
+  color: var(--text);
+  font-family: "Trebuchet MS", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 0.95;
+}
+
+.brand-food {
+  color: var(--accent);
+}
+
+.logo-ticket {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.logo-ticket::before {
+  content: "";
+  width: 28px;
+  height: 34px;
+  border: 1.5px dashed var(--border);
+  border-radius: 7px;
+  background:
+    linear-gradient(var(--border), var(--border)) 50% 34% / 14px 1px no-repeat,
+    linear-gradient(var(--border), var(--border)) 50% 54% / 16px 1px no-repeat,
+    var(--surface);
+  box-shadow: 2px 2px 0 rgba(45, 36, 24, 0.08);
+}
+
+.app-sidebar {
+  background-color: var(--surface-strong);
+  background-image: url("/textures/cardstock-paper.svg");
+  background-size: 180px 180px;
+  box-shadow: inset -1px 0 rgba(45, 36, 24, 0.08);
+}
+
+.nav-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.nav-tab::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.72;
+}
+
+.nav-tab-active {
+  border-color: rgba(132, 204, 22, 0.45);
+  background: rgba(253, 248, 240, 0.58);
+  color: var(--text);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.page-title {
+  color: var(--text);
+  font-family: "Trebuchet MS", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.page-intro,
+.muted-ink {
+  color: var(--muted);
+}
+
+.receipt-card {
+  position: relative;
+  overflow: hidden;
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  background-color: var(--surface);
+  background-image: url("/textures/receipt-paper.svg");
+  background-size: 180px 180px;
+  box-shadow: var(--shadow-paper);
+}
+
+.receipt-card::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), transparent 42%);
+  opacity: 0.55;
+}
+
+.receipt-header {
+  border-bottom: 1.5px dashed var(--border);
+}
+
+.receipt-divider {
+  border-top: 1.5px dashed var(--border);
+}
+
+.ticket-card {
+  border: 1.5px dashed var(--border);
+  border-radius: 7px;
+  background: rgba(253, 248, 240, 0.82);
+  box-shadow: var(--shadow-ticket);
+}
+
+.ticket-card:nth-child(2n) {
+  transform: rotate(0.35deg);
+}
+
+.ticket-card:nth-child(3n) {
+  transform: rotate(-0.25deg);
+}
+
+.price,
+.mono-value {
+  color: var(--accent-dark);
+  font-family: "JetBrains Mono", "Inconsolata", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  background-image: url("/textures/stamp-noise.svg");
+  background-size: 90px 90px;
+  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: 0 1px 0 rgba(45, 36, 24, 0.12);
+  opacity: 0.92;
+}
+
+.stamp-blue {
+  color: var(--info);
+  transform: rotate(-2deg);
+}
+
+.stamp-yellow {
+  color: var(--accent-warn);
+  transform: rotate(1deg);
+}
+
+.stamp-green {
+  color: var(--accent-dark);
+  transform: rotate(-1deg);
+}
+
+.stamp-red {
+  color: var(--danger);
+  opacity: 0.82;
+  transform: rotate(2deg);
+}
+
+.stamp-button {
+  border: 1px solid var(--accent-dark) !important;
+  border-radius: 8px !important;
+  background-color: var(--accent) !important;
+  background-image: url("/textures/stamp-noise.svg");
+  color: var(--text) !important;
+  font-weight: 900 !important;
+  box-shadow: inset 0 -2px 0 rgba(45, 36, 24, 0.18), 0 6px 14px rgba(101, 163, 13, 0.24);
+}
+
+.secondary-button {
+  border: 1.5px dashed var(--border) !important;
+  border-radius: 8px !important;
+  background: rgba(253, 248, 240, 0.45) !important;
+  color: var(--text) !important;
+  font-weight: 800;
+}
+
+.notebook-line {
+  border-bottom: 1px solid rgba(212, 196, 168, 0.72);
+}
+
+.kanban-column {
+  border: 1.5px solid var(--border);
+  border-top: 10px solid rgba(139, 115, 85, 0.32);
+  border-radius: 8px;
+  background: rgba(253, 248, 240, 0.54);
+  box-shadow: inset 0 4px 0 rgba(253, 248, 240, 0.36);
+}
+
+.order-ticket {
+  border: 1.5px dashed var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  box-shadow: 0 8px 18px rgba(45, 36, 24, 0.11);
+}
+
+.highlight-note {
+  border-radius: 6px;
+  background: rgba(217, 119, 6, 0.16);
+  color: #7c3f06;
+  box-shadow: inset 0 -8px 0 rgba(217, 119, 6, 0.08);
+}
+
+.chat-bubble-client {
+  background: #f4ead8;
+  color: var(--text);
+}
+
+.chat-bubble-ai {
+  background: #d9f99d;
+  color: var(--text);
+}
+
+.chat-bubble-human {
+  background: #dbeafe;
+  color: var(--text);
+}
+
+.graph-paper {
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(rgba(212, 196, 168, 0.7) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 196, 168, 0.7) 1px, transparent 1px),
+    url("/textures/receipt-paper.svg");
+  background-size: 22px 22px, 22px 22px, 180px 180px;
+}
+
+.food-thumb {
+  border: 1px solid rgba(139, 115, 85, 0.22);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 42% 44%, #f59e0b 0 16%, transparent 17%),
+    radial-gradient(circle at 58% 46%, #7c2d12 0 15%, transparent 16%),
+    radial-gradient(circle at 50% 55%, #84cc16 0 7%, transparent 8%),
+    linear-gradient(135deg, #fcd34d, #92400e 48%, #3f2f1d);
+  box-shadow: inset 0 0 0 3px rgba(253, 248, 240, 0.32);
+}
+
+.login-table {
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.07), transparent 28%),
+    linear-gradient(90deg, #2c1d12, #4a2f1b 46%, #24160d);
+}
+
+.receipt-phone {
+  border: 10px solid #241b13;
+  border-radius: 28px;
+  background: var(--bg);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.26);
+}
+
+@media (max-width: 768px) {
+  main {
+    padding: 1rem;
+  }
+
+  .receipt-card,
+  .ticket-card,
+  .order-ticket,
+  .kanban-column {
+    border-radius: 8px;
+  }
 }
