@@ -11,12 +11,26 @@ const offeredWhere = () => ({ active: true, OR: [{ isDaily: false }, { available
 
 const money = (d: unknown) => Number(d ?? 0);
 
+async function findPublicRestaurant(slug: string, includeSettings = false) {
+  const include = includeSettings ? { settings: true } : undefined;
+  const exact = await prisma.restaurant.findUnique({ where: { slug }, include });
+  if (exact) return exact;
+
+  const activeRestaurants = await prisma.restaurant.findMany({
+    where: { active: true },
+    include,
+    orderBy: { createdAt: "asc" },
+    take: 2,
+  });
+  return activeRestaurants.length === 1 ? activeRestaurants[0] : null;
+}
+
 // Rotas PÚBLICAS (sem auth) usadas pelo cardápio digital que o cliente abre.
 export async function publicRoutes(app: FastifyInstance) {
   // Info da loja
   app.get("/public/r/:slug", async (req, reply) => {
     const { slug } = req.params as { slug: string };
-    const r = await prisma.restaurant.findUnique({ where: { slug }, include: { settings: true } });
+    const r = await findPublicRestaurant(slug, true);
     if (!r) return reply.code(404).send({ error: "loja não encontrada" });
     const s = r.settings;
     return {
@@ -29,7 +43,7 @@ export async function publicRoutes(app: FastifyInstance) {
   // Cardápio (categorias → produtos → variações/adicionais)
   app.get("/public/r/:slug/menu", async (req, reply) => {
     const { slug } = req.params as { slug: string };
-    const r = await prisma.restaurant.findUnique({ where: { slug } });
+    const r = await findPublicRestaurant(slug);
     if (!r) return reply.code(404).send({ error: "loja não encontrada" });
     const cats = await prisma.menuCategory.findMany({
       where: { restaurantId: r.id, active: true },
@@ -54,7 +68,7 @@ export async function publicRoutes(app: FastifyInstance) {
   // Bairros atendidos
   app.get("/public/r/:slug/zones", async (req, reply) => {
     const { slug } = req.params as { slug: string };
-    const r = await prisma.restaurant.findUnique({ where: { slug } });
+    const r = await findPublicRestaurant(slug);
     if (!r) return reply.code(404).send({ error: "loja não encontrada" });
     const zones = await prisma.deliveryZone.findMany({
       where: { restaurantId: r.id, active: true }, orderBy: { neighborhood: "asc" },
@@ -91,7 +105,7 @@ export async function publicRoutes(app: FastifyInstance) {
       changeFor: z.number().optional(),
     }).parse(req.body);
 
-    const r = await prisma.restaurant.findUnique({ where: { slug }, include: { settings: true } });
+    const r = await findPublicRestaurant(slug, true);
     if (!r) return reply.code(404).send({ error: "loja não encontrada" });
     if (!r.settings?.isOpen) return reply.code(409).send({ error: "A loja está fechada no momento." });
 
