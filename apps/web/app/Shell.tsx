@@ -71,7 +71,7 @@ export default function Shell({ children }: { children: ReactNode }) {
         <div className="mb-8">
           <Logo />
           <div className="mt-4 border-t pt-3 text-xs font-bold uppercase" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>
-            Bloco de comandas
+            Gestao food
           </div>
         </div>
         <NavLinks />

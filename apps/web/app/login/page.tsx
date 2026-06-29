@@ -20,10 +20,11 @@ export default function LoginPage() {
 
   return (
     <div className="login-table flex min-h-screen items-center justify-center p-5">
-      <form onSubmit={submit} className="receipt-card w-full max-w-sm p-7">
+      <form onSubmit={submit} className="receipt-card w-full max-w-md p-7">
+        <div className="food-thumb mb-5 h-36 w-full" />
         <div className="mb-6 text-center">
           <div className="brand-wordmark text-5xl">ZAPYE<br /><span className="brand-food">Food</span></div>
-          <p className="mt-3 text-sm muted-ink">Entrar no bloco de comandas</p>
+          <p className="mt-3 text-sm muted-ink">Entre para vender, acompanhar pedidos e cuidar da cozinha em tempo real.</p>
         </div>
         <label className="mb-3 block text-xs font-bold uppercase muted-ink">
           E-mail
@@ -35,7 +36,7 @@ export default function LoginPage() {
         </label>
         {err && <p className="highlight-note mb-3 p-2 text-xs">{err}</p>}
         <button className="stamp-button w-full px-4 py-3 text-sm">Entrar</button>
-        <div className="receipt-divider mt-5 pt-4 text-center text-xs muted-ink">Comanda segura para o restaurante</div>
+        <div className="receipt-divider mt-5 pt-4 text-center text-xs muted-ink">Gestao food rapida para restaurantes locais</div>
       </form>
     </div>
   );

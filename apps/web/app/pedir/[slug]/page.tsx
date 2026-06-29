@@ -115,7 +115,7 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
     setPaid(true);
   }
 
-  const inp = "w-full border-0 border-b px-2 py-2 text-sm";
+  const inp = "w-full border px-3 py-3 text-sm";
 
   if (order) {
     return (
@@ -154,13 +154,20 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
   }
 
   return (
-    <div className="mx-auto max-w-3xl p-4 pb-56">
-      <header className="receipt-card mb-5 p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="brand-wordmark text-4xl">{info?.name ?? "ZAPYE"}<br /><span className="brand-food">Food</span></div>
-            <p className="mt-2 text-sm muted-ink">Cardapio digital em papel de restaurante.</p>
+    <div className="mx-auto max-w-3xl p-4 pb-64">
+      <header className="receipt-card mb-5 overflow-hidden p-5">
+        <div className="grid gap-5 sm:grid-cols-[1fr_220px]">
+          <div className="flex flex-col justify-between">
+            <div>
+              <div className="brand-wordmark text-4xl">{info?.name ?? "ZAPYE"}<br /><span className="brand-food">Food</span></div>
+              <p className="mt-2 max-w-sm text-sm muted-ink">Escolha seus favoritos, personalize adicionais e finalize o pedido em poucos toques.</p>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="stamp stamp-green">Mais pedidos</span>
+              <span className="stamp stamp-yellow">Entrega rapida</span>
+            </div>
           </div>
+          <div className="food-thumb h-44 w-full" />
           <span className={info?.isOpen ? "stamp stamp-green" : "stamp stamp-yellow"}>
             {info ? (info.isOpen ? "Aberto" : "Fechado") : "..."}
           </span>
@@ -173,16 +180,18 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
             <h2 className="page-title text-2xl">{c.name}</h2>
             <div className="h-px flex-1 border-t border-dashed" style={{ borderColor: "var(--border)" }} />
           </div>
-          <div className="grid gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {c.products.map((p) => (
-              <article key={p.id} className="ticket-card flex items-center gap-3 p-3">
-                <div className={`food-thumb h-20 w-20 shrink-0 ${p.name.toLowerCase().includes("pizza") ? "pizza" : p.name.toLowerCase().includes("batata") ? "fries" : ""}`} />
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-black">{p.name}</h3>
-                  {p.description && <p className="text-xs muted-ink">{p.description}</p>}
-                  <div className="price mt-1 text-lg">{brl(p.price)}</div>
+              <article key={p.id} className="ticket-card overflow-hidden p-3">
+                <div className={`food-thumb mb-3 h-36 w-full ${p.name.toLowerCase().includes("pizza") ? "pizza" : p.name.toLowerCase().includes("batata") ? "fries" : ""}`} />
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-black">{p.name}</h3>
+                    {p.description && <p className="mt-1 line-clamp-2 text-xs muted-ink">{p.description}</p>}
+                    <div className="price mt-2 text-lg">{brl(p.price)}</div>
+                  </div>
+                  <button onClick={() => openProduct(p)} className="stamp-button h-11 w-11 shrink-0 text-xl">+</button>
                 </div>
-                <button onClick={() => openProduct(p)} className="stamp-button h-11 w-11 shrink-0 text-xl">+</button>
               </article>
             ))}
           </div>
@@ -190,7 +199,7 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
       ))}
 
       {cart.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-3xl border-t p-4" style={{ background: "rgba(245, 230, 211, 0.94)", borderColor: "var(--border)", backdropFilter: "blur(8px)" }}>
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-3xl border-t p-4" style={{ background: "rgba(255, 246, 234, 0.92)", borderColor: "var(--border)", backdropFilter: "blur(16px)" }}>
           <div className="receipt-card p-4">
             <div className="mb-2 max-h-32 overflow-auto">
               {cart.map((l) => (
@@ -242,7 +251,7 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
             )}
 
             {err && <p className="highlight-note mt-2 p-2 text-xs">{err}</p>}
-            <button onClick={place} disabled={placing || !name || !phone} className="stamp-button mt-3 w-full px-4 py-3 text-sm disabled:opacity-50">
+            <button onClick={place} disabled={placing || !name || !phone} className="stamp-button mt-3 w-full px-4 py-4 text-sm disabled:opacity-50">
               {placing ? "Enviando..." : `Fazer pedido - ${brl(total)}`}
             </button>
           </div>
@@ -251,7 +260,7 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
 
       {modal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4" onClick={() => setModal(null)}>
-          <div className="receipt-card w-full max-w-md rounded-t-lg p-5 sm:rounded-lg" onClick={(e) => e.stopPropagation()}>
+          <div className="receipt-card w-full max-w-md rounded-t-[28px] p-5 sm:rounded-[28px]" onClick={(e) => e.stopPropagation()}>
             <h2 className="page-title text-2xl">{modal.name}</h2>
             {modal.description && <p className="mb-3 text-xs muted-ink">{modal.description}</p>}
 

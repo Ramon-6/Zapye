@@ -16,7 +16,7 @@ export default function StyleGuidePage() {
     <div className="max-w-6xl">
       <div className="mb-6">
         <h1 className="page-title text-4xl">Guia visual ZAPYE Food</h1>
-        <p className="page-intro text-sm">Sistema "A Comanda": papel real digital, quente, tatil e profissional.</p>
+        <p className="page-intro text-sm">Sistema visual food app: claro, apetitoso, arredondado e pronto para venda mobile.</p>
       </div>
 
       <section className="receipt-card mb-6 p-5">
@@ -42,11 +42,11 @@ export default function StyleGuidePage() {
         </div>
 
         <div className="receipt-card p-5">
-          <h2 className="page-title mb-4 text-2xl">Texturas</h2>
+          <h2 className="page-title mb-4 text-2xl">Fundos e superficies</h2>
           <div className="grid grid-cols-3 gap-3">
-            <div className="ticket-card h-28 p-3" style={{ backgroundImage: "url('/textures/kraft-paper.svg')" }}>kraft</div>
-            <div className="ticket-card h-28 p-3" style={{ backgroundImage: "url('/textures/cardstock-paper.svg')" }}>cartolina</div>
-            <div className="ticket-card h-28 p-3" style={{ backgroundImage: "url('/textures/receipt-paper.svg')" }}>comanda</div>
+            <div className="ticket-card h-28 p-3">card branco</div>
+            <div className="ticket-card h-28 p-3" style={{ background: "var(--accent-soft)" }}>accent soft</div>
+            <div className="food-thumb h-28 p-3 text-white">food image</div>
           </div>
         </div>
       </section>
@@ -57,7 +57,7 @@ export default function StyleGuidePage() {
           <div className="ticket-card p-4">
             <div className="text-xs font-bold uppercase muted-ink">KPI Ticket</div>
             <div className="mono-value mt-2 text-3xl">R$ 1.256,00</div>
-            <div className="receipt-divider mt-3 pt-3 text-xs muted-ink">Sombra de papel sobre papel.</div>
+            <div className="receipt-divider mt-3 pt-3 text-xs muted-ink">Sombra macia de app premium.</div>
           </div>
           <div className="order-ticket p-4">
             <div className="receipt-header mb-3 flex justify-between pb-2">
@@ -74,7 +74,7 @@ export default function StyleGuidePage() {
               <span className="stamp stamp-green">pronto</span>
               <span className="stamp stamp-red">cancelado</span>
             </div>
-            <button className="stamp-button mr-2 px-4 py-2 text-sm">Carimbo verde</button>
+            <button className="stamp-button mr-2 px-4 py-2 text-sm">Acao principal</button>
             <button className="secondary-button px-4 py-2 text-sm">Secundario</button>
           </div>
         </div>
