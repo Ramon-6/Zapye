@@ -1,0 +1,467 @@
+// ZAPYE Food — schema completo
+// Multi-tenant: tudo pendura em restaurantId.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────── ENUMS ────────────────────────────
+
+enum UserRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+enum ConversationStatus {
+  BOT          // IA atendendo
+  HUMAN        // humano assumiu
+  WAITING      // aguardando atendente
+  CLOSED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageSender {
+  CLIENT
+  AI
+  HUMAN
+  SYSTEM
+}
+
+enum OrderStatus {
+  NOVO
+  CONFIRMANDO
+  AGUARDANDO_PIX
+  AGUARDANDO_VALIDACAO_HUMANA
+  PAGO
+  EM_PREPARO
+  PRONTO
+  SAIU_PARA_ENTREGA
+  FINALIZADO
+  CANCELADO
+}
+
+enum DeliveryType {
+  RETIRADA
+  ENTREGA
+}
+
+enum PaymentMethod {
+  PIX
+  DINHEIRO
+  CARTAO
+}
+
+enum PaymentStatus {
+  PENDENTE
+  EM_VALIDACAO
+  CONFIRMADO
+  RECUSADO
+}
+
+enum CartStatus {
+  OPEN
+  CONVERTED
+  ABANDONED
+}
+
+enum AddonType {
+  EXTRA        // adicional cobrado
+  OPTION       // opção (ex: ponto da carne)
+}
+
+// ──────────────────────────── CONTAS ────────────────────────────
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         UserRole   @default(OWNER)
+  restaurantId String?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Restaurant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users              User[]
+  settings           RestaurantSettings?
+  whatsappInstances  WhatsappInstance[]
+  clients            Client[]
+  conversations      Conversation[]
+  categories         MenuCategory[]
+  products           Product[]
+  carts              Cart[]
+  orders             Order[]
+  deliveryZones      DeliveryZone[]
+  aiSessions         AiSession[]
+  auditLogs          AuditLog[]
+}
+
+model RestaurantSettings {
+  id              String   @id @default(cuid())
+  restaurantId    String   @unique
+  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  addressLine     String?
+  pixKey          String?
+  pixKeyName      String?
+  // horário: array de janelas por dia da semana (0=dom..6=sab)
+  openingHours    Json     @default("[]")
+  avgDeliveryMin  Int      @default(40)
+  minOrderValue   Decimal  @default(0) @db.Decimal(10, 2)
+
+  acceptsPix      Boolean  @default(true)
+  acceptsCash     Boolean  @default(true)
+  acceptsCard     Boolean  @default(false)
+  acceptsPickup   Boolean  @default(true)
+
+  greetingMessage String?
+  closingMessage  String?
+  deliveryPolicy  String?
+
+  aiEnabled       Boolean  @default(true)
+  aiTone          String?  // instruções extras de tom para o prompt
+
+  isOpen          Boolean  @default(false) // loja aberta p/ pedidos (toggle manual)
+
+  updatedAt       DateTime @updatedAt
+}
+
+model WhatsappInstance {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  instanceName  String   @unique  // nome na Evolution API
+  phoneNumber   String?
+  connected     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  conversations Conversation[]
+  @@index([restaurantId])
+}
+
+// ──────────────────────────── CLIENTES ────────────────────────────
+
+model Client {
+  id           String   @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name         String?
+  phone        String   // E.164 / jid
+  tags         String[] @default([])
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  addresses     Address[]
+  conversations Conversation[]
+  carts         Cart[]
+  orders        Order[]
+
+  @@unique([restaurantId, phone])
+  @@index([restaurantId])
+}
+
+model Address {
+  id           String   @id @default(cuid())
+  clientId     String
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  label        String?  // "casa", "trabalho"
+  street       String
+  number       String?
+  complement   String?
+  neighborhood String
+  city         String?
+  reference    String?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  orders Order[]
+  @@index([clientId])
+}
+
+// ──────────────────────────── CONVERSAS ────────────────────────────
+
+model Conversation {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  clientId      String
+  client        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  instanceId    String?
+  instance      WhatsappInstance? @relation(fields: [instanceId], references: [id])
+  status        ConversationStatus @default(BOT)
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  messages   Message[]
+  aiSessions AiSession[]
+
+  @@index([restaurantId, status])
+  @@index([clientId])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction      MessageDirection
+  sender         MessageSender
+  content        String
+  mediaUrl       String?
+  mediaType      String?  // image, audio, document
+  waMessageId    String?  // id na Evolution, para idempotência
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+  @@unique([waMessageId])
+}
+
+// ──────────────────────────── CARDÁPIO ────────────────────────────
+
+model MenuCategory {
+  id           String   @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  sortOrder    Int      @default(0)
+  active       Boolean  @default(true)
+
+  products Product[]
+  @@index([restaurantId])
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  categoryId   String
+  category     MenuCategory @relation(fields: [categoryId], references: [id])
+  name         String
+  description  String?
+  ingredients  String?
+  imageUrl     String?
+  basePrice    Decimal  @db.Decimal(10, 2)
+  active       Boolean  @default(true)
+  allowNotes   Boolean  @default(true)
+  isCombo      Boolean  @default(false)
+  sortOrder    Int      @default(0)
+
+  // Cardápio do dia: item diário só aparece se availableDate == hoje (SP).
+  isDaily       Boolean @default(false)
+  availableDate String?
+
+  addons     ProductAddon[]
+  variations ProductVariation[]
+  cartItems  CartItem[]
+
+  @@index([restaurantId, active])
+  @@index([categoryId])
+}
+
+model ProductAddon {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  type      AddonType @default(EXTRA)
+  price     Decimal  @default(0) @db.Decimal(10, 2)
+  required  Boolean  @default(false)
+  maxQty    Int      @default(1)
+  active    Boolean  @default(true)
+
+  @@index([productId])
+}
+
+model ProductVariation {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String   // ex: "Pequeno", "Grande", "Broto"
+  price     Decimal  @db.Decimal(10, 2)
+  active    Boolean  @default(true)
+
+  @@index([productId])
+}
+
+// ──────────────────────────── CARRINHO ────────────────────────────
+
+model Cart {
+  id           String   @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  clientId     String
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  status       CartStatus @default(OPEN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items CartItem[]
+  order Order?
+
+  @@index([restaurantId, clientId, status])
+}
+
+model CartItem {
+  id          String   @id @default(cuid())
+  cartId      String
+  cart        Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  variationId String?
+  quantity    Int      @default(1)
+  // snapshot dos adicionais escolhidos: [{addonId,name,price,qty}]
+  addons      Json     @default("[]")
+  notes       String?
+  unitPrice   Decimal  @db.Decimal(10, 2)  // base+variação+adicionais
+  lineTotal   Decimal  @db.Decimal(10, 2)
+
+  @@index([cartId])
+}
+
+// ──────────────────────────── PEDIDO ────────────────────────────
+
+model Order {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  clientId      String
+  client        Client   @relation(fields: [clientId], references: [id])
+  cartId        String?  @unique
+  cart          Cart?    @relation(fields: [cartId], references: [id])
+  code          Int      // número sequencial por restaurante (humano)
+  status        OrderStatus @default(NOVO)
+
+  deliveryType  DeliveryType
+  addressId     String?
+  address       Address? @relation(fields: [addressId], references: [id])
+  deliveryNote  String?
+  deliveryFee   Decimal  @default(0) @db.Decimal(10, 2)
+
+  paymentMethod PaymentMethod
+  subtotal      Decimal  @db.Decimal(10, 2)
+  total         Decimal  @db.Decimal(10, 2)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items    OrderItem[]
+  payments Payment[]
+
+  @@unique([restaurantId, code])
+  @@index([restaurantId, status])
+  @@index([restaurantId, createdAt])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  productName String   // snapshot
+  variationName String?
+  quantity    Int
+  addons      Json     @default("[]")
+  notes       String?
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  lineTotal   Decimal  @db.Decimal(10, 2)
+
+  @@index([orderId])
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method    PaymentMethod
+  status    PaymentStatus @default(PENDENTE)
+  amount    Decimal  @db.Decimal(10, 2)
+  proofUrl  String?  // comprovante enviado pelo cliente
+  validatedBy String? // userId que validou manualmente
+  validatedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+// ──────────────────────────── ENTREGA ────────────────────────────
+
+model DeliveryZone {
+  id           String   @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  neighborhood String
+  fee          Decimal  @db.Decimal(10, 2)
+  minOrder     Decimal  @default(0) @db.Decimal(10, 2)
+  avgMinutes   Int?
+  active       Boolean  @default(true)
+
+  @@unique([restaurantId, neighborhood])
+  @@index([restaurantId])
+}
+
+// ──────────────────────────── IA ────────────────────────────
+
+model AiSession {
+  id             String   @id @default(cuid())
+  restaurantId   String
+  restaurant     Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  // estado curto do diálogo (cartId ativo, etapa, etc.)
+  state          Json     @default("{}")
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  logs AiLog[]
+  @@index([conversationId])
+}
+
+model AiLog {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     AiSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role        String   // user, assistant, tool
+  toolName    String?
+  payload     Json     // request/response da tool ou texto
+  tokensIn    Int?
+  tokensOut   Int?
+  latencyMs   Int?
+  createdAt   DateTime @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  userId       String?
+  action       String   // ex: ORDER_STATUS_CHANGED
+  entity       String?
+  entityId     String?
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  @@index([restaurantId, createdAt])
+}
