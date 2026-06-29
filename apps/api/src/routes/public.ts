@@ -11,7 +11,7 @@ const offeredWhere = () => ({ active: true, OR: [{ isDaily: false }, { available
 
 const money = (d: unknown) => Number(d ?? 0);
 
-async function findPublicRestaurant(slug: string, includeSettings = false) {
+async function findPublicRestaurant(slug: string, includeSettings = false): Promise<any | null> {
   const include = includeSettings ? { settings: true } : undefined;
   const exact = await prisma.restaurant.findUnique({ where: { slug }, include });
   if (exact) return exact;
