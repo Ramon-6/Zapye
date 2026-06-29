@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, use } from "react";
 import QRCode from "qrcode";
+import { ChevronRight, Heart, Home, Menu, Plus, ReceiptText, ShoppingCart, User } from "lucide-react";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 async function get(path: string) { const r = await fetch(`${BASE}${path}`); if (!r.ok) throw new Error(await r.text()); return r.json(); }
@@ -33,6 +34,14 @@ const DEMO_MENU: Category[] = [
   },
 ];
 const DEMO_ZONES = [{ id: "centro", neighborhood: "Centro", fee: 6 }];
+
+function imageFor(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes("bacon")) return "/food/burger-bacon.png";
+  if (n.includes("batata")) return "/food/fries.png";
+  if (n.includes("coca") || n.includes("cola")) return "/food/coke.png";
+  return "/food/burger-classic.png";
+}
 
 export default function PedirPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ c?: string }> }) {
   const { slug } = use(params);
@@ -154,44 +163,46 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
   }
 
   return (
-    <div className="mx-auto max-w-3xl p-4 pb-64">
-      <header className="receipt-card mb-5 overflow-hidden p-5">
-        <div className="grid gap-5 sm:grid-cols-[1fr_220px]">
-          <div className="flex flex-col justify-between">
-            <div>
-              <div className="brand-wordmark text-4xl">{info?.name ?? "ZAPYE"}<br /><span className="brand-food">Food</span></div>
-              <p className="mt-2 max-w-sm text-sm muted-ink">Escolha seus favoritos, personalize adicionais e finalize o pedido em poucos toques.</p>
-            </div>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <span className="stamp stamp-green">Mais pedidos</span>
-              <span className="stamp stamp-yellow">Entrega rapida</span>
-            </div>
+    <div className="mx-auto min-h-screen max-w-md bg-white pb-40 shadow-[0_0_0_1px_rgba(233,221,207,.7)] sm:my-6 sm:overflow-hidden sm:rounded-[32px]">
+      <header className="sticky top-0 z-30 bg-white">
+        <div className="flex h-16 items-center justify-between px-5">
+          <Menu size={22} />
+          <div className="logo-ticket brand-wordmark scale-[0.58] text-xl">
+            <span>{info?.name ?? "ZAPYE"}<br /><span className="brand-food">Food</span></span>
           </div>
-          <div className="food-thumb h-44 w-full" />
-          <span className={info?.isOpen ? "stamp stamp-green" : "stamp stamp-yellow"}>
-            {info ? (info.isOpen ? "Aberto" : "Fechado") : "..."}
-          </span>
+          <div className="relative">
+            <ShoppingCart size={24} />
+            {cart.length > 0 && <span className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-[#fb3f10] text-[10px] font-bold text-white">{cart.length}</span>}
+          </div>
         </div>
       </header>
 
+      <section className="relative mx-5 h-[112px] overflow-hidden rounded-[3px]">
+        <img src="/food/hero-burger-fries.png" alt="Burger com fritas" className="h-full w-full object-cover" />
+      </section>
+
+      <div className="no-scrollbar flex gap-2 overflow-x-auto px-5 py-4 text-xs font-bold">
+        {["Todos", ...menu.map((c) => c.name)].slice(0, 6).map((c, i) => (
+          <button key={`${c}-${i}`} className={i === 0 ? "rounded-full bg-[#fb3f10] px-5 py-2 text-white" : "rounded-full bg-[#f3eee8] px-5 py-2"}>{c}</button>
+        ))}
+      </div>
+
       {menu.map((c) => (
-        <section key={c.id} className="mb-6">
+        <section key={c.id} className="mb-4 px-5">
           <div className="mb-3 flex items-center gap-3">
-            <h2 className="page-title text-2xl">{c.name}</h2>
-            <div className="h-px flex-1 border-t border-dashed" style={{ borderColor: "var(--border)" }} />
+            <h2 className="text-xl font-extrabold">{c.name}</h2>
+            <div className="h-px flex-1 border-t border-dashed border-[#e9ddcf]" />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3">
             {c.products.map((p) => (
-              <article key={p.id} className="ticket-card overflow-hidden p-3">
-                <div className={`food-thumb mb-3 h-36 w-full ${p.name.toLowerCase().includes("pizza") ? "pizza" : p.name.toLowerCase().includes("batata") ? "fries" : ""}`} />
-                <div className="flex items-start gap-3">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-black">{p.name}</h3>
-                    {p.description && <p className="mt-1 line-clamp-2 text-xs muted-ink">{p.description}</p>}
-                    <div className="price mt-2 text-lg">{brl(p.price)}</div>
-                  </div>
-                  <button onClick={() => openProduct(p)} className="stamp-button h-11 w-11 shrink-0 text-xl">+</button>
+              <article key={p.id} className="flex h-[108px] gap-4 rounded-[14px] border border-[#eee0d2] bg-white p-3 shadow-[0_4px_12px_rgba(64,43,24,.05)]">
+                <img src={imageFor(p.name)} alt={p.name} className="h-[82px] w-[100px] shrink-0 rounded-[12px] object-cover" />
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base font-bold leading-tight">{p.name}</h3>
+                  {p.description && <p className="mt-1 line-clamp-2 text-xs leading-relaxed muted-ink">{p.description}</p>}
+                  <div className="mt-2 text-lg font-bold text-[#fb3f10]">{brl(p.price)}</div>
                 </div>
+                <button onClick={() => openProduct(p)} className="mt-auto grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#fb3f10] text-white"><Plus size={22} /></button>
               </article>
             ))}
           </div>
@@ -199,8 +210,8 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
       ))}
 
       {cart.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-3xl border-t p-4" style={{ background: "rgba(255, 246, 234, 0.92)", borderColor: "var(--border)", backdropFilter: "blur(16px)" }}>
-          <div className="receipt-card p-4">
+        <div className="fixed inset-x-0 bottom-16 z-40 mx-auto max-w-md px-5">
+          <div className="receipt-card p-4 shadow-[0_16px_36px_rgba(64,43,24,.16)]">
             <div className="mb-2 max-h-32 overflow-auto">
               {cart.map((l) => (
                 <div key={l.key} className="notebook-line flex items-center justify-between gap-2 py-1 text-sm">
@@ -251,12 +262,29 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
             )}
 
             {err && <p className="highlight-note mt-2 p-2 text-xs">{err}</p>}
-            <button onClick={place} disabled={placing || !name || !phone} className="stamp-button mt-3 w-full px-4 py-4 text-sm disabled:opacity-50">
-              {placing ? "Enviando..." : `Fazer pedido - ${brl(total)}`}
+            <button onClick={place} disabled={placing || !name || !phone} className="stamp-button mt-3 flex w-full items-center justify-center gap-2 px-4 py-4 text-sm disabled:opacity-50">
+              {placing ? "Enviando..." : <>Finalizar pedido - {brl(total)} <ChevronRight size={18} /></>}
             </button>
           </div>
         </div>
       )}
+
+      {cart.length === 0 && (
+        <div className="fixed inset-x-0 bottom-16 z-40 mx-auto max-w-md px-5">
+          <button className="flex h-14 w-full items-center justify-center gap-2 rounded-[16px] bg-[#67af09] text-sm font-bold text-white shadow-[0_16px_36px_rgba(64,43,24,.14)]">
+            <ShoppingCart size={20} /> Adicione itens ao carrinho
+          </button>
+        </div>
+      )}
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto grid h-16 max-w-md grid-cols-4 border-t border-[#eee0d2] bg-white text-[10px]">
+        {[[Home, "Inicio", true], [ReceiptText, "Pedidos"], [Heart, "Favoritos"], [User, "Conta"]].map(([Icon, label, active]: any) => (
+          <a key={label} href="#" className={`flex flex-col items-center justify-center gap-1 ${active ? "text-[#fb3f10]" : "text-[#191513]"}`}>
+            <Icon size={20} fill={active ? "currentColor" : "none"} />
+            <span>{label}</span>
+          </a>
+        ))}
+      </nav>
 
       {modal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4" onClick={() => setModal(null)}>
