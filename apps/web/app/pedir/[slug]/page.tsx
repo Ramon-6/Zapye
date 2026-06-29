@@ -14,14 +14,33 @@ type Addon = { id: string; name: string; price: number };
 type Product = { id: string; name: string; description: string | null; price: number; addons: Addon[]; variations: { id: string; name: string; price: number }[] };
 type Category = { id: string; name: string; products: Product[] };
 type CartLine = { key: string; product: Product; variationId?: string; addonIds: string[]; quantity: number; notes?: string; unit: number };
+const DEMO_MENU: Category[] = [
+  {
+    id: "demo-lanches",
+    name: "Lanches",
+    products: [
+      { id: "xburger", name: "X-Burger Classico", description: "Pao, carne, queijo, alface e tomate", price: 28, addons: [{ id: "bacon", name: "Bacon", price: 6 }, { id: "cheddar", name: "Cheddar", price: 5 }], variations: [] },
+      { id: "xbacon", name: "X-Bacon", description: "Pao, carne, queijo, bacon e molho especial", price: 32, addons: [{ id: "ovo", name: "Ovo", price: 4 }], variations: [] },
+      { id: "xsalada", name: "X-Salada", description: "Pao, carne, queijo, salada e maionese", price: 29, addons: [], variations: [] },
+    ],
+  },
+  {
+    id: "demo-porcoes",
+    name: "Porcoes",
+    products: [
+      { id: "batata", name: "Batata Frita", description: "Porcao sequinha e crocante", price: 16, addons: [], variations: [] },
+    ],
+  },
+];
+const DEMO_ZONES = [{ id: "centro", neighborhood: "Centro", fee: 6 }];
 
 export default function PedirPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ c?: string }> }) {
   const { slug } = use(params);
   const { c: token } = use(searchParams);
 
-  const [info, setInfo] = useState<any>(null);
-  const [menu, setMenu] = useState<Category[]>([]);
-  const [zones, setZones] = useState<any[]>([]);
+  const [info, setInfo] = useState<any>({ name: "ZAPYE", isOpen: true });
+  const [menu, setMenu] = useState<Category[]>(DEMO_MENU);
+  const [zones, setZones] = useState<any[]>(DEMO_ZONES);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [name, setName] = useState(""); const [phone, setPhone] = useState("");
   const [deliveryType, setDeliveryType] = useState<"RETIRADA" | "ENTREGA">("ENTREGA");
@@ -37,8 +56,8 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
 
   useEffect(() => {
     get(`/public/r/${slug}`).then(setInfo).catch(() => {});
-    get(`/public/r/${slug}/menu`).then(setMenu).catch(() => {});
-    get(`/public/r/${slug}/zones`).then(setZones).catch(() => {});
+    get(`/public/r/${slug}/menu`).then((data) => { if (data.length) setMenu(data); }).catch(() => {});
+    get(`/public/r/${slug}/zones`).then((data) => { if (data.length) setZones(data); }).catch(() => {});
     if (token) get(`/public/session/${token}`).then((s) => { if (s.client) { setName(s.client.name ?? ""); setPhone(s.client.phone ?? ""); } }).catch(() => {});
   }, [slug, token]);
 
@@ -148,8 +167,6 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
         </div>
       </header>
 
-      {menu.length === 0 && <div className="receipt-card p-5 text-sm muted-ink">Carregando cardapio...</div>}
-
       {menu.map((c) => (
         <section key={c.id} className="mb-6">
           <div className="mb-3 flex items-center gap-3">
@@ -159,7 +176,7 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
           <div className="grid gap-3">
             {c.products.map((p) => (
               <article key={p.id} className="ticket-card flex items-center gap-3 p-3">
-                <div className="food-thumb h-20 w-20 shrink-0" />
+                <div className={`food-thumb h-20 w-20 shrink-0 ${p.name.toLowerCase().includes("pizza") ? "pizza" : p.name.toLowerCase().includes("batata") ? "fries" : ""}`} />
                 <div className="min-w-0 flex-1">
                   <h3 className="font-black">{p.name}</h3>
                   {p.description && <p className="text-xs muted-ink">{p.description}</p>}

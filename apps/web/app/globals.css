@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Patrick+Hand&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -90,8 +92,8 @@ option {
 
 .brand-wordmark {
   color: var(--text);
-  font-family: "Trebuchet MS", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
-  font-weight: 900;
+  font-family: Fredoka, "Trebuchet MS", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  font-weight: 700;
   letter-spacing: 0;
   line-height: 0.95;
 }
@@ -136,7 +138,7 @@ option {
   border: 1px solid transparent;
   color: var(--muted);
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .nav-tab::before {
@@ -157,8 +159,8 @@ option {
 
 .page-title {
   color: var(--text);
-  font-family: "Trebuchet MS", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
-  font-weight: 900;
+  font-family: Fredoka, "Trebuchet MS", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  font-weight: 700;
   letter-spacing: 0;
 }
 
@@ -186,6 +188,13 @@ option {
   border-radius: inherit;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), transparent 42%);
   opacity: 0.55;
+}
+
+.receipt-card > *,
+.ticket-card > *,
+.order-ticket > * {
+  position: relative;
+  z-index: 1;
 }
 
 .receipt-header {
@@ -216,6 +225,11 @@ option {
   color: var(--accent-dark);
   font-family: "JetBrains Mono", "Inconsolata", ui-monospace, SFMono-Regular, Consolas, monospace;
   font-weight: 800;
+  letter-spacing: 0;
+}
+
+.handwrite {
+  font-family: "Patrick Hand", "Comic Sans MS", cursive;
   letter-spacing: 0;
 }
 
@@ -268,6 +282,15 @@ option {
   box-shadow: inset 0 -2px 0 rgba(45, 36, 24, 0.18), 0 6px 14px rgba(101, 163, 13, 0.24);
 }
 
+.stamp-big {
+  min-width: 78px;
+  min-height: 54px;
+  border-width: 2px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  transform: rotate(-10deg);
+}
+
 .secondary-button {
   border: 1.5px dashed var(--border) !important;
   border-radius: 8px !important;
@@ -286,6 +309,25 @@ option {
   border-radius: 8px;
   background: rgba(253, 248, 240, 0.54);
   box-shadow: inset 0 4px 0 rgba(253, 248, 240, 0.36);
+}
+
+.kanban-clip {
+  position: relative;
+}
+
+.kanban-clip::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -15px;
+  z-index: 2;
+  width: 54px;
+  height: 18px;
+  border: 1px solid rgba(45, 36, 24, 0.32);
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(#9a8060, #6f563c);
+  box-shadow: 0 4px 8px rgba(45, 36, 24, 0.16);
+  transform: translateX(-50%);
 }
 
 .order-ticket {
@@ -335,6 +377,30 @@ option {
     radial-gradient(circle at 50% 55%, #84cc16 0 7%, transparent 8%),
     linear-gradient(135deg, #fcd34d, #92400e 48%, #3f2f1d);
   box-shadow: inset 0 0 0 3px rgba(253, 248, 240, 0.32);
+}
+
+.food-thumb.fries {
+  background:
+    repeating-linear-gradient(100deg, #facc15 0 7px, #f59e0b 7px 12px, transparent 12px 18px),
+    linear-gradient(135deg, #b91c1c, #7f1d1d);
+}
+
+.food-thumb.pizza {
+  background:
+    radial-gradient(circle at 38% 42%, #b91c1c 0 7%, transparent 8%),
+    radial-gradient(circle at 62% 54%, #15803d 0 6%, transparent 7%),
+    radial-gradient(circle at 54% 35%, #b91c1c 0 6%, transparent 7%),
+    linear-gradient(135deg, #fcd34d, #f59e0b 55%, #92400e);
+}
+
+.compact-table {
+  font-size: 0.78rem;
+}
+
+.dark-board {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255,255,255,0.06), transparent 30%),
+    linear-gradient(135deg, #171717, #0f1318 58%, #090b0f);
 }
 
 .login-table {
