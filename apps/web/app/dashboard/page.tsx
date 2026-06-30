@@ -6,17 +6,9 @@ import {
   ChevronDown,
   ChevronRight,
   CircleDollarSign,
-  Clock3,
-  CreditCard,
-  Grid2X2,
-  Menu,
   Plus,
   ShoppingBag,
-  ShoppingCart,
   User,
-  Heart,
-  Home,
-  ReceiptText,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -102,73 +94,9 @@ function MiniLineChart() {
   );
 }
 
-function PhonePreview() {
-  const items = [
-    ["X-Burger Classico", "Pao, carne, queijo, alface e tomate", "R$ 28,00", "/food/burger-classic.png"],
-    ["X-Bacon", "Pao, carne, queijo, bacon e molho especial", "R$ 32,00", "/food/burger-bacon.png"],
-    ["Batata Frita", "Porcao de batata frita sequinha e crocante", "R$ 16,00", "/food/fries.png"],
-    ["Coca-Cola Lata", "Lata 350ml", "R$ 7,00", "/food/coke.png"],
-  ];
-
-  return (
-    <div className="phone-frame relative h-[820px] w-[350px] overflow-hidden p-2">
-      <div className="phone-notch" />
-      <div className="h-full overflow-hidden rounded-[36px] bg-white">
-        <div className="flex h-14 items-end justify-between px-5 pb-2 text-sm font-bold">
-          <span>11:30</span>
-          <span className="text-xs">▮▮▮</span>
-        </div>
-        <div className="flex h-14 items-center justify-between px-5">
-          <Menu size={22} />
-          <div className="logo-ticket brand-wordmark scale-[0.58] text-xl">
-            <span>ZAPYE<br /><span className="brand-food">Food</span></span>
-          </div>
-          <div className="relative">
-            <ShoppingCart size={24} />
-            <span className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-[#fb3f10] text-[10px] font-bold text-white">2</span>
-          </div>
-        </div>
-        <div className="relative mx-5 h-[92px] overflow-hidden rounded-[3px]">
-          <img src="/food/hero-burger-fries.png" alt="Burger destaque" className="h-full w-full object-cover" />
-        </div>
-        <div className="no-scrollbar flex gap-2 overflow-x-auto px-5 py-4 text-xs font-bold">
-          {["Todos", "Lanches", "Pizzas", "Porcoes", "Bebidas"].map((c, i) => (
-            <button key={c} className={i === 0 ? "rounded-full bg-[#fb3f10] px-5 py-2 text-white" : "rounded-full bg-[#f3eee8] px-5 py-2"}>{c}</button>
-          ))}
-        </div>
-        <div className="space-y-3 px-5 pb-[112px]">
-          {items.map(([name, desc, price, src]) => (
-            <article key={name} className="flex h-[108px] gap-4 rounded-[14px] border border-[#eee0d2] bg-white p-3 shadow-[0_4px_12px_rgba(64,43,24,.05)]">
-              <img src={src} alt={name} className="h-[82px] w-[100px] shrink-0 rounded-[12px] object-cover" />
-              <div className="min-w-0 flex-1">
-                <h3 className="text-base font-bold leading-tight">{name}</h3>
-                <p className="mt-1 line-clamp-2 text-xs leading-relaxed muted-ink">{desc}</p>
-                <div className="mt-2 text-lg font-bold text-[#fb3f10]">{price}</div>
-              </div>
-              <button className="mt-auto grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#fb3f10] text-white"><Plus size={22} /></button>
-            </article>
-          ))}
-        </div>
-        <div className="absolute bottom-16 left-5 right-5 flex items-center gap-3 rounded-[16px] bg-[#67af09] p-2 text-white">
-          <div className="flex flex-1 items-center gap-2 pl-2 text-sm font-bold"><ShoppingCart size={20} />2 itens<br />R$ 60,00</div>
-          <button className="flex h-12 flex-[1.45] items-center justify-center gap-2 rounded-[13px] bg-[#fb3f10] text-sm font-bold">Finalizar pedido <ChevronRight size={18} /></button>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 grid h-16 grid-cols-4 border-t border-[#eee0d2] bg-white text-[10px]">
-          {[[Home, "Inicio", true], [ReceiptText, "Pedidos"], [Heart, "Favoritos"], [User, "Conta"]].map(([Icon, label, active]: any) => (
-            <div key={label} className={`flex flex-col items-center justify-center gap-1 ${active ? "text-[#fb3f10]" : "text-[#191513]"}`}>
-              <Icon size={20} fill={active ? "currentColor" : "none"} />
-              <span>{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function DashboardPage() {
   return (
-    <div className="reference-stage grid max-w-[1420px] gap-6 xl:grid-cols-[minmax(920px,1fr)_350px]">
+    <div className="reference-stage max-w-[1180px]">
       <div className="min-w-0 space-y-4">
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -275,10 +203,6 @@ export default function DashboardPage() {
             <div className="mt-5 text-center text-sm">Total: <b>R$ 4.320,80</b></div>
           </section>
         </section>
-      </div>
-
-      <div className="hidden pt-12 xl:block">
-        <PhonePreview />
       </div>
     </div>
   );

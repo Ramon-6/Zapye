@@ -9,7 +9,7 @@ async function post(path: string, body: any) {
   const r = await fetch(`${BASE}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const j = await r.json(); if (!r.ok) throw new Error(j.error ?? "erro"); return j;
 }
-const brl = (n: number) => `R$ ${n.toFixed(2)}`;
+const brl = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
 
 type Addon = { id: string; name: string; price: number };
 type Product = { id: string; name: string; description: string | null; price: number; addons: Addon[]; variations: { id: string; name: string; price: number }[] };
@@ -60,6 +60,7 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
   const [order, setOrder] = useState<any>(null); const [qrImg, setQrImg] = useState<string>();
   const [paid, setPaid] = useState(false);
   const [modal, setModal] = useState<Product | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [mVar, setMVar] = useState<string>(); const [mAddons, setMAddons] = useState<string[]>([]);
   const [mQty, setMQty] = useState(1); const [mNotes, setMNotes] = useState("");
 
@@ -73,6 +74,7 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
   const zoneFee = useMemo(() => zones.find((z) => z.neighborhood === neighborhood)?.fee ?? 0, [zones, neighborhood]);
   const subtotal = useMemo(() => cart.reduce((s, l) => s + l.unit * l.quantity, 0), [cart]);
   const total = subtotal + (deliveryType === "ENTREGA" ? zoneFee : 0);
+  const products = useMemo(() => menu.flatMap((c) => c.products), [menu]);
 
   function unitPrice(p: Product, variationId?: string, addonIds: string[] = []) {
     return (variationId ? p.variations.find((v) => v.id === variationId)?.price ?? p.price : p.price)
@@ -187,30 +189,26 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
         ))}
       </div>
 
-      {menu.map((c) => (
-        <section key={c.id} className="mb-4 px-5">
-          <div className="mb-3 flex items-center gap-3">
-            <h2 className="text-xl font-extrabold">{c.name}</h2>
-            <div className="h-px flex-1 border-t border-dashed border-[#e9ddcf]" />
-          </div>
-          <div className="grid gap-3">
-            {c.products.map((p) => (
-              <article key={p.id} className="flex h-[108px] gap-4 rounded-[14px] border border-[#eee0d2] bg-white p-3 shadow-[0_4px_12px_rgba(64,43,24,.05)]">
-                <img src={imageFor(p.name)} alt={p.name} className="h-[82px] w-[100px] shrink-0 rounded-[12px] object-cover" />
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-bold leading-tight">{p.name}</h3>
-                  {p.description && <p className="mt-1 line-clamp-2 text-xs leading-relaxed muted-ink">{p.description}</p>}
-                  <div className="mt-2 text-lg font-bold text-[#fb3f10]">{brl(p.price)}</div>
-                </div>
-                <button onClick={() => openProduct(p)} className="mt-auto grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#fb3f10] text-white"><Plus size={22} /></button>
-              </article>
-            ))}
-          </div>
-        </section>
-      ))}
+      <section className="px-5">
+        <div className="grid gap-3">
+          {products.map((p) => (
+            <article key={p.id} className="flex h-[118px] gap-4 rounded-[14px] border border-[#eee0d2] bg-white p-3 shadow-[0_4px_12px_rgba(64,43,24,.05)]">
+              <img src={imageFor(p.name)} alt={p.name} className="h-[92px] w-[108px] shrink-0 rounded-[12px] object-cover" />
+              <div className="min-w-0 flex-1 pr-1">
+                <h3 className="max-w-[128px] text-[1.05rem] font-extrabold leading-[1.12]">{p.name}</h3>
+                {p.description && <p className="mt-2 line-clamp-2 max-w-[120px] text-sm leading-relaxed muted-ink">{p.description}</p>}
+                <div className="mt-2 text-lg font-extrabold text-[#fb3f10]">{brl(p.price)}</div>
+              </div>
+              <button onClick={() => openProduct(p)} className="my-auto grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#fb3f10] text-white"><Plus size={26} /></button>
+            </article>
+          ))}
+        </div>
+      </section>
 
       {cart.length > 0 && (
-        <div className="fixed inset-x-0 bottom-16 z-40 mx-auto max-w-md px-5">
+        <>
+        {checkoutOpen && (
+        <div className="fixed inset-x-0 bottom-[136px] z-40 mx-auto max-w-md px-5">
           <div className="receipt-card p-4 shadow-[0_16px_36px_rgba(64,43,24,.16)]">
             <div className="mb-2 max-h-32 overflow-auto">
               {cart.map((l) => (
@@ -263,18 +261,24 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
 
             {err && <p className="highlight-note mt-2 p-2 text-xs">{err}</p>}
             <button onClick={place} disabled={placing || !name || !phone} className="stamp-button mt-3 flex w-full items-center justify-center gap-2 px-4 py-4 text-sm disabled:opacity-50">
-              {placing ? "Enviando..." : <>Finalizar pedido - {brl(total)} <ChevronRight size={18} /></>}
+              {placing ? "Enviando..." : <>Enviar pedido - {brl(total)} <ChevronRight size={18} /></>}
             </button>
           </div>
         </div>
-      )}
+        )}
 
-      {cart.length === 0 && (
-        <div className="fixed inset-x-0 bottom-16 z-40 mx-auto max-w-md px-5">
-          <button className="flex h-14 w-full items-center justify-center gap-2 rounded-[16px] bg-[#67af09] text-sm font-bold text-white shadow-[0_16px_36px_rgba(64,43,24,.14)]">
-            <ShoppingCart size={20} /> Adicione itens ao carrinho
-          </button>
+        <div className="fixed inset-x-0 bottom-16 z-50 mx-auto max-w-md px-5">
+          <div className="flex h-[60px] items-center gap-3 rounded-[16px] bg-[#67af09] p-2 text-white shadow-[0_16px_36px_rgba(64,43,24,.14)]">
+            <div className="flex flex-1 items-center gap-2 pl-3 text-sm font-extrabold">
+              <ShoppingCart size={22} />
+              <span>{cart.reduce((s, l) => s + l.quantity, 0)} itens<br />{brl(total)}</span>
+            </div>
+            <button onClick={() => setCheckoutOpen(true)} className="flex h-12 flex-[1.45] items-center justify-center gap-2 rounded-[13px] bg-[#fb3f10] text-sm font-extrabold">
+              Finalizar pedido <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
+        </>
       )}
 
       <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto grid h-16 max-w-md grid-cols-4 border-t border-[#eee0d2] bg-white text-[10px]">
