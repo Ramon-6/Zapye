@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 import { useEffect, useMemo, useState, use } from "react";
 import QRCode from "qrcode";
+import { ChevronRight, Heart, Home, Menu, Plus, ReceiptText, ShoppingCart, Star, User } from "lucide-react";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 async function get(path: string) { const r = await fetch(`${BASE}${path}`); if (!r.ok) throw new Error(await r.text()); return r.json(); }
@@ -8,20 +9,57 @@ async function post(path: string, body: any) {
   const r = await fetch(`${BASE}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const j = await r.json(); if (!r.ok) throw new Error(j.error ?? "erro"); return j;
 }
-const brl = (n: number) => `R$ ${n.toFixed(2)}`;
+const brl = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
 
 type Addon = { id: string; name: string; price: number };
-type Product = { id: string; name: string; description: string | null; price: number; addons: Addon[]; variations: { id: string; name: string; price: number }[] };
+type Product = { id: string; name: string; description: string | null; price: number; imageUrl?: string | null; addons: Addon[]; variations: { id: string; name: string; price: number }[] };
 type Category = { id: string; name: string; products: Product[] };
 type CartLine = { key: string; product: Product; variationId?: string; addonIds: string[]; quantity: number; notes?: string; unit: number };
+const DEMO_MENU: Category[] = [
+  {
+    id: "demo-lanches",
+    name: "Lanches",
+    products: [
+      { id: "xburger", name: "X-Burger Classico", description: "Pao, carne, queijo, alface e tomate", price: 28, addons: [{ id: "bacon", name: "Bacon", price: 6 }, { id: "cheddar", name: "Cheddar", price: 5 }], variations: [] },
+      { id: "xbacon", name: "X-Bacon", description: "Pao, carne, queijo, bacon e molho especial", price: 32, addons: [{ id: "ovo", name: "Ovo", price: 4 }], variations: [] },
+      { id: "xsalada", name: "X-Salada", description: "Pao, carne, queijo, salada e maionese", price: 29, addons: [], variations: [] },
+    ],
+  },
+  {
+    id: "demo-porcoes",
+    name: "Porcoes",
+    products: [
+      { id: "batata", name: "Batata Frita", description: "Porcao sequinha e crocante", price: 16, addons: [], variations: [] },
+    ],
+  },
+];
+const DEMO_ZONES = [{ id: "centro", neighborhood: "Centro", fee: 6 }];
+
+function imageFor(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes("bacon")) return "/food/burger-bacon.png";
+  if (n.includes("batata")) return "/food/fries.png";
+  if (n.includes("coca") || n.includes("cola")) return "/food/coke.png";
+  return "/food/burger-classic.png";
+}
+
+function productImage(p: Product) { return p.imageUrl || imageFor(p.name); }
+
+function ratingFor(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes("bacon")) return "4.9";
+  if (n.includes("batata")) return "4.7";
+  if (n.includes("coca") || n.includes("cola")) return "4.6";
+  return "4.8";
+}
 
 export default function PedirPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ c?: string }> }) {
   const { slug } = use(params);
   const { c: token } = use(searchParams);
 
-  const [info, setInfo] = useState<any>(null);
-  const [menu, setMenu] = useState<Category[]>([]);
-  const [zones, setZones] = useState<any[]>([]);
+  const [info, setInfo] = useState<any>({ name: "ZAPYE", isOpen: true });
+  const [menu, setMenu] = useState<Category[]>(DEMO_MENU);
+  const [zones, setZones] = useState<any[]>(DEMO_ZONES);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [name, setName] = useState(""); const [phone, setPhone] = useState("");
   const [deliveryType, setDeliveryType] = useState<"RETIRADA" | "ENTREGA">("ENTREGA");
@@ -31,21 +69,27 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
   const [placing, setPlacing] = useState(false); const [err, setErr] = useState<string>();
   const [order, setOrder] = useState<any>(null); const [qrImg, setQrImg] = useState<string>();
   const [paid, setPaid] = useState(false);
-  // modal de produto (variações + adicionais + obs)
   const [modal, setModal] = useState<Product | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("Todos");
   const [mVar, setMVar] = useState<string>(); const [mAddons, setMAddons] = useState<string[]>([]);
   const [mQty, setMQty] = useState(1); const [mNotes, setMNotes] = useState("");
 
   useEffect(() => {
     get(`/public/r/${slug}`).then(setInfo).catch(() => {});
-    get(`/public/r/${slug}/menu`).then(setMenu).catch(() => {});
-    get(`/public/r/${slug}/zones`).then(setZones).catch(() => {});
+    get(`/public/r/${slug}/menu`).then((data) => { if (data.length) setMenu(data); }).catch(() => {});
+    get(`/public/r/${slug}/zones`).then((data) => { if (data.length) setZones(data); }).catch(() => {});
     if (token) get(`/public/session/${token}`).then((s) => { if (s.client) { setName(s.client.name ?? ""); setPhone(s.client.phone ?? ""); } }).catch(() => {});
   }, [slug, token]);
 
   const zoneFee = useMemo(() => zones.find((z) => z.neighborhood === neighborhood)?.fee ?? 0, [zones, neighborhood]);
   const subtotal = useMemo(() => cart.reduce((s, l) => s + l.unit * l.quantity, 0), [cart]);
   const total = subtotal + (deliveryType === "ENTREGA" ? zoneFee : 0);
+  const categories = useMemo(() => ["Todos", ...menu.map((c) => c.name)], [menu]);
+  const products = useMemo(() => {
+    if (activeCategory === "Todos") return menu.flatMap((c) => c.products);
+    return menu.find((c) => c.name === activeCategory)?.products ?? [];
+  }, [activeCategory, menu]);
 
   function unitPrice(p: Product, variationId?: string, addonIds: string[] = []) {
     return (variationId ? p.variations.find((v) => v.id === variationId)?.price ?? p.price : p.price)
@@ -54,7 +98,6 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
   function addProduct(p: Product, variationId?: string, addonIds: string[] = [], quantity = 1, notes?: string) {
     setCart((c) => [...c, { key: Math.random().toString(36).slice(2), product: p, variationId, addonIds, quantity, notes, unit: unitPrice(p, variationId, addonIds) }]);
   }
-  // abre modal se houver opções; senão adiciona direto
   function openProduct(p: Product) {
     if (p.addons.length === 0 && p.variations.length === 0) { addProduct(p); return; }
     setModal(p); setMVar(p.variations[0]?.id); setMAddons([]); setMQty(1); setMNotes("");
@@ -98,37 +141,36 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
     setPaid(true);
   }
 
-  const card = { borderColor: "var(--border)", background: "var(--surface)" };
-  const inp = "w-full rounded-lg border bg-transparent px-3 py-2 text-sm"; const inpS = { borderColor: "var(--border)" };
+  const inp = "w-full border px-3 py-3 text-sm";
 
-  // ---- Tela de confirmação / pagamento ----
   if (order) {
     return (
       <div className="mx-auto max-w-md p-5">
-        <div className="rounded-2xl border p-6 text-center" style={card}>
+        <div className="receipt-card p-6 text-center">
           {paid ? (
             <>
-              <div className="text-4xl">✅</div>
-              <h1 className="mt-2 text-xl font-bold">Pagamento confirmado!</h1>
-              <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Pedido #{order.code} enviado para a cozinha.</p>
+              <span className="stamp stamp-green">Pago</span>
+              <h1 className="page-title mt-3 text-2xl">Pagamento confirmado!</h1>
+              <p className="mt-1 text-sm muted-ink">Pedido #{order.code} enviado para a cozinha.</p>
             </>
           ) : order.pix ? (
             <>
-              <h1 className="text-xl font-bold">Pague com Pix</h1>
-              <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Pedido #{order.code} · {brl(order.total)}</p>
+              <span className="stamp stamp-blue">Pix</span>
+              <h1 className="page-title mt-3 text-2xl">Pague com Pix</h1>
+              <p className="mt-1 text-sm muted-ink">Pedido #{order.code} - <span className="price">{brl(order.total)}</span></p>
               {qrImg && <img src={qrImg} alt="QR Pix" className="mx-auto my-4 rounded-lg bg-white p-2" />}
-              <textarea readOnly value={order.pix.code} className="h-20 w-full rounded-lg border bg-transparent p-2 text-xs" style={inpS} />
-              <p className="mt-2 text-xs" style={{ color: "var(--accent-warn)" }}>Pix de TESTE (virtual). Clique abaixo para simular o pagamento.</p>
-              <button onClick={simulatePay} className="mt-3 w-full rounded-lg py-3 font-semibold text-black" style={{ background: "var(--accent)" }}>
-                Já paguei (simular)
+              <textarea readOnly value={order.pix.code} className="h-20 w-full border-0 border-b p-2 text-xs" />
+              <p className="highlight-note mt-3 p-2 text-xs">Pix de TESTE. Clique abaixo para simular o pagamento.</p>
+              <button onClick={simulatePay} className="stamp-button mt-3 w-full px-4 py-3 text-sm">
+                Ja paguei (simular)
               </button>
             </>
           ) : (
             <>
-              <div className="text-4xl">🧾</div>
-              <h1 className="mt-2 text-xl font-bold">Pedido #{order.code} enviado!</h1>
-              <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-                Total {brl(order.total)} · pagamento na {deliveryType === "ENTREGA" ? "entrega" : "retirada"}.
+              <span className="stamp stamp-green">Enviado</span>
+              <h1 className="page-title mt-3 text-2xl">Pedido #{order.code} enviado!</h1>
+              <p className="mt-1 text-sm muted-ink">
+                Total <span className="price">{brl(order.total)}</span> - pagamento na {deliveryType === "ENTREGA" ? "entrega" : "retirada"}.
               </p>
             </>
           )}
@@ -137,110 +179,161 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
     );
   }
 
-  // ---- Cardápio + carrinho ----
   return (
-    <div className="mx-auto max-w-2xl p-4 pb-40">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold">{info?.name ?? "Cardápio"}</h1>
-        <p className="text-sm" style={{ color: info?.isOpen ? "var(--accent)" : "var(--accent-warn)" }}>
-          {info ? (info.isOpen ? "● Aberto agora" : "● Fechado no momento") : "…"}
-        </p>
-      </div>
-
-      {menu.map((c) => (
-        <section key={c.id} className="mb-5">
-          <h2 className="mb-2 text-lg font-semibold">{c.name}</h2>
-          <div className="grid gap-2">
-            {c.products.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded-xl border p-3" style={card}>
-                <div className="pr-2">
-                  <div className="font-semibold">{p.name}</div>
-                  {p.description && <div className="text-xs" style={{ color: "var(--muted)" }}>{p.description}</div>}
-                  <div className="mt-1 text-sm" style={{ color: "var(--accent)" }}>{brl(p.price)}</div>
-                </div>
-                <button onClick={() => openProduct(p)} className="rounded-lg px-3 py-2 text-sm font-bold text-black" style={{ background: "var(--accent)" }}>+</button>
-              </div>
-            ))}
+    <div className="mx-auto min-h-screen max-w-md bg-white pb-40 shadow-[0_0_0_1px_rgba(233,221,207,.7)] sm:my-6 sm:overflow-hidden sm:rounded-[32px]">
+      <header className="sticky top-0 z-30 bg-white">
+        <div className="flex h-16 items-center justify-between px-5">
+          <Menu size={22} />
+          <div className="logo-ticket brand-wordmark scale-[0.58] text-xl">
+            <span>{info?.name ?? "ZAPYE"}<br /><span className="brand-food">Food</span></span>
           </div>
-        </section>
-      ))}
-
-      {/* Carrinho + checkout fixo embaixo */}
-      {cart.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 mx-auto max-w-2xl border-t p-4" style={{ ...card, borderColor: "var(--border)" }}>
-          <div className="mb-2 max-h-32 overflow-auto">
-            {cart.map((l) => (
-              <div key={l.key} className="flex items-center justify-between py-1 text-sm">
-                <span>{l.product.name}</span>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => setQty(l.key, l.quantity - 1)} className="px-2">−</button>
-                  <span>{l.quantity}</span>
-                  <button onClick={() => setQty(l.key, l.quantity + 1)} className="px-2">+</button>
-                  <span style={{ color: "var(--accent)" }}>{brl(l.unit * l.quantity)}</span>
-                </div>
-              </div>
-            ))}
+          <div className="relative">
+            <ShoppingCart size={24} />
+            {cart.length > 0 && <span className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-[#CD6346] text-[10px] font-bold text-white">{cart.length}</span>}
           </div>
+        </div>
+      </header>
 
-          <div className="grid grid-cols-2 gap-2">
-            <input className={inp} style={inpS} placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} />
-            <input className={inp} style={inpS} placeholder="WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
+      <section className="relative mx-5 h-[112px] overflow-hidden rounded-[3px]">
+        <img src="/food/hero-burger-fries.png" alt="Burger com fritas" className="h-full w-full object-cover" />
+      </section>
 
-          <div className="mt-2 flex gap-2 text-sm">
-            {(["ENTREGA", "RETIRADA"] as const).map((t) => (
-              <button key={t} onClick={() => setDeliveryType(t)} className="flex-1 rounded-lg border py-2"
-                style={{ borderColor: "var(--border)", background: deliveryType === t ? "var(--accent)" : "transparent", color: deliveryType === t ? "#000" : "var(--text)" }}>
-                {t === "ENTREGA" ? "Entrega" : "Retirada"}
-              </button>
-            ))}
-          </div>
-
-          {deliveryType === "ENTREGA" && (
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <select className={inp} style={inpS} value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)}>
-                <option value="">Bairro…</option>
-                {zones.map((z) => <option key={z.id} value={z.neighborhood}>{z.neighborhood} (+{brl(z.fee)})</option>)}
-              </select>
-              <input className={inp} style={inpS} placeholder="Rua" value={street} onChange={(e) => setStreet(e.target.value)} />
-              <input className={inp} style={inpS} placeholder="Número" value={number} onChange={(e) => setNumber(e.target.value)} />
-            </div>
-          )}
-
-          <div className="mt-2 flex gap-2 text-sm">
-            {(["PIX", "DINHEIRO", "CARTAO"] as const).map((m) => (
-              <button key={m} onClick={() => setPayment(m)} className="flex-1 rounded-lg border py-2"
-                style={{ borderColor: "var(--border)", background: payment === m ? "var(--accent)" : "transparent", color: payment === m ? "#000" : "var(--text)" }}>
-                {m === "PIX" ? "Pix agora" : m === "DINHEIRO" ? "Dinheiro" : "Cartão"}
-              </button>
-            ))}
-          </div>
-          {payment === "DINHEIRO" && (
-            <input className={`${inp} mt-2`} style={inpS} placeholder="Troco para quanto? (opcional)" value={changeFor} onChange={(e) => setChangeFor(e.target.value)} />
-          )}
-
-          {err && <p className="mt-2 text-xs" style={{ color: "var(--accent-warn)" }}>{err}</p>}
-          <button onClick={place} disabled={placing || !name || !phone} className="mt-3 w-full rounded-lg py-3 font-bold text-black disabled:opacity-50" style={{ background: "var(--accent)" }}>
-            {placing ? "Enviando…" : `Fazer pedido · ${brl(total)}`}
-          </button>
+      {!info?.isOpen && (
+        <div className="mx-5 mt-4 rounded-[16px] bg-[#F9E4DD] p-3 text-sm font-bold text-[#111111]">
+          Loja fechada agora. Voce pode montar o pedido, mas o envio fica bloqueado ate abrir.
         </div>
       )}
 
-      {/* Modal de produto: variações + adicionais + observação */}
+      <div className="no-scrollbar flex gap-2 overflow-x-auto px-5 py-4 text-xs font-bold">
+        {categories.map((c) => (
+          <button key={c} onClick={() => setActiveCategory(c)} className={activeCategory === c ? "rounded-full bg-[#CD6346] px-5 py-2.5 text-white shadow-[0_8px_16px_rgba(205,99,70,.18)]" : "rounded-full bg-[#F9E4DD] px-5 py-2.5 text-[#111111]"}>{c}</button>
+        ))}
+      </div>
+
+      <section className="px-5 pt-12">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-10">
+          {products.map((p) => (
+            <article key={p.id} className="food-postit-card">
+              <img src={productImage(p)} alt={p.name} className="food-postit-image" />
+              <div className="food-postit-body">
+                <h3 className="food-postit-title">{p.name}</h3>
+                {p.description && <p className="food-postit-desc">{p.description}</p>}
+                <div className="food-postit-footer">
+                  <div>
+                    <div className="food-postit-rating" aria-label={`Nota ${ratingFor(p.name)}`}>
+                      {[0, 1, 2, 3, 4].map((i) => <Star key={i} size={12} fill="currentColor" strokeWidth={0} />)}
+                      <span>{ratingFor(p.name)}</span>
+                    </div>
+                    <div className="food-postit-price">{brl(p.price)}</div>
+                  </div>
+                  <button onClick={() => openProduct(p)} className="food-postit-add" aria-label={`Adicionar ${p.name}`}>
+                    <Plus size={22} strokeWidth={2.4} />
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {cart.length > 0 && (
+        <>
+        {checkoutOpen && (
+        <div className="fixed inset-x-0 bottom-[136px] z-40 mx-auto max-w-md px-5">
+          <div className="receipt-card p-4 shadow-[0_16px_36px_rgba(17,17,17,.14)]">
+            <div className="mb-2 max-h-32 overflow-auto">
+              {cart.map((l) => (
+                <div key={l.key} className="notebook-line flex items-center justify-between gap-2 py-1 text-sm">
+                  <span>{l.product.name}</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setQty(l.key, l.quantity - 1)} className="secondary-button px-2">-</button>
+                    <span className="mono-value">{l.quantity}</span>
+                    <button onClick={() => setQty(l.key, l.quantity + 1)} className="secondary-button px-2">+</button>
+                    <span className="price">{brl(l.unit * l.quantity)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <input className={inp} placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} />
+              <input className={inp} placeholder="WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+
+            <div className="mt-2 flex gap-2 text-sm">
+              {(["ENTREGA", "RETIRADA"] as const).map((t) => (
+                <button key={t} onClick={() => setDeliveryType(t)} className={deliveryType === t ? "stamp-button flex-1 py-2" : "secondary-button flex-1 py-2"}>
+                  {t === "ENTREGA" ? "Entrega" : "Retirada"}
+                </button>
+              ))}
+            </div>
+
+            {deliveryType === "ENTREGA" && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <select className={inp} value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)}>
+                  <option value="">Bairro...</option>
+                  {zones.map((z) => <option key={z.id} value={z.neighborhood}>{z.neighborhood} (+{brl(z.fee)})</option>)}
+                </select>
+                <input className={inp} placeholder="Rua" value={street} onChange={(e) => setStreet(e.target.value)} />
+                <input className={inp} placeholder="Numero" value={number} onChange={(e) => setNumber(e.target.value)} />
+              </div>
+            )}
+
+            <div className="mt-2 flex gap-2 text-sm">
+              {(["PIX", "DINHEIRO", "CARTAO"] as const).map((m) => (
+                <button key={m} onClick={() => setPayment(m)} className={payment === m ? "stamp-button flex-1 py-2" : "secondary-button flex-1 py-2"}>
+                  {m === "PIX" ? "Pix agora" : m === "DINHEIRO" ? "Dinheiro" : "Cartao"}
+                </button>
+              ))}
+            </div>
+            {payment === "DINHEIRO" && (
+              <input className={`${inp} mt-2`} placeholder="Troco para quanto? (opcional)" value={changeFor} onChange={(e) => setChangeFor(e.target.value)} />
+            )}
+
+            {err && <p className="highlight-note mt-2 p-2 text-xs">{err}</p>}
+            <button onClick={place} disabled={placing || !name || !phone || !info?.isOpen} className="stamp-button mt-3 flex w-full items-center justify-center gap-2 px-4 py-4 text-sm disabled:opacity-50">
+              {placing ? "Enviando..." : <>Enviar pedido - {brl(total)} <ChevronRight size={18} /></>}
+            </button>
+          </div>
+        </div>
+        )}
+
+        <div className="fixed inset-x-0 bottom-16 z-50 mx-auto max-w-md px-5">
+          <div className="flex h-[60px] items-center gap-3 rounded-[18px] bg-[#88BBAF] p-2 text-[#111111] shadow-[0_18px_38px_rgba(17,17,17,.14)]">
+            <div className="flex flex-1 items-center gap-2 pl-3 text-sm font-extrabold">
+              <ShoppingCart size={22} />
+              <span>{cart.reduce((s, l) => s + l.quantity, 0)} itens<br />{brl(total)}</span>
+            </div>
+            <button onClick={() => setCheckoutOpen(true)} className="flex h-12 flex-[1.45] items-center justify-center gap-2 rounded-[14px] bg-[#CD6346] text-sm font-extrabold text-white shadow-[0_8px_18px_rgba(17,17,17,.12)] transition duration-200 active:scale-[0.98]">
+              Finalizar pedido <ChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+        </>
+      )}
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto grid h-16 max-w-md grid-cols-4 border-t border-[rgba(17,17,17,.10)] bg-white text-[10px]">
+        {[[Home, "Inicio", true], [ReceiptText, "Pedidos"], [Heart, "Favoritos"], [User, "Conta"]].map(([Icon, label, active]: any) => (
+          <a key={label} href="#" className={`flex flex-col items-center justify-center gap-1 ${active ? "text-[#CD6346]" : "text-[#111111]"}`}>
+            <Icon size={20} fill={active ? "currentColor" : "none"} />
+            <span>{label}</span>
+          </a>
+        ))}
+      </nav>
+
       {modal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4" onClick={() => setModal(null)}>
-          <div className="w-full max-w-md rounded-t-2xl border p-5 sm:rounded-2xl" style={{ borderColor: "var(--border)", background: "var(--surface)" }} onClick={(e) => e.stopPropagation()}>
-            <div className="mb-1 text-lg font-bold">{modal.name}</div>
-            {modal.description && <p className="mb-3 text-xs" style={{ color: "var(--muted)" }}>{modal.description}</p>}
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4" onClick={() => setModal(null)}>
+          <div className="receipt-card w-full max-w-md rounded-t-[28px] p-5 sm:rounded-[28px]" onClick={(e) => e.stopPropagation()}>
+            <h2 className="page-title text-2xl">{modal.name}</h2>
+            {modal.description && <p className="mb-3 text-xs muted-ink">{modal.description}</p>}
 
             {modal.variations.length > 0 && (
               <div className="mb-3">
-                <div className="mb-1 text-xs font-semibold" style={{ color: "var(--muted)" }}>Tamanho</div>
+                <div className="mb-2 text-xs font-bold uppercase muted-ink">Tamanho</div>
                 <div className="flex flex-wrap gap-2">
                   {modal.variations.map((v) => (
-                    <button key={v.id} onClick={() => setMVar(v.id)} className="rounded-lg border px-3 py-1.5 text-sm"
-                      style={{ borderColor: "var(--border)", background: mVar === v.id ? "var(--accent)" : "transparent", color: mVar === v.id ? "#000" : "var(--text)" }}>
-                      {v.name} · {brl(v.price)}
+                    <button key={v.id} onClick={() => setMVar(v.id)} className={mVar === v.id ? "stamp-button px-3 py-2 text-sm" : "secondary-button px-3 py-2 text-sm"}>
+                      {v.name} - {brl(v.price)}
                     </button>
                   ))}
                 </div>
@@ -249,29 +342,29 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
 
             {modal.addons.length > 0 && (
               <div className="mb-3">
-                <div className="mb-1 text-xs font-semibold" style={{ color: "var(--muted)" }}>Adicionais</div>
+                <div className="mb-2 text-xs font-bold uppercase muted-ink">Adicionais</div>
                 <div className="grid gap-1.5">
                   {modal.addons.map((a) => (
-                    <label key={a.id} className="flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
+                    <label key={a.id} className="notebook-line flex cursor-pointer items-center justify-between py-2 text-sm">
                       <span><input type="checkbox" checked={mAddons.includes(a.id)} onChange={() => toggleAddon(a.id)} className="mr-2 align-middle" />{a.name}</span>
-                      <span style={{ color: "var(--accent)" }}>+{brl(a.price)}</span>
+                      <span className="price">+{brl(a.price)}</span>
                     </label>
                   ))}
                 </div>
               </div>
             )}
 
-            <input value={mNotes} onChange={(e) => setMNotes(e.target.value)} placeholder="Observação (ex: sem cebola)"
-              className="mb-3 w-full rounded-lg border bg-transparent px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }} />
+            <input value={mNotes} onChange={(e) => setMNotes(e.target.value)} placeholder="Observacao (ex: sem cebola)"
+              className="mb-3 w-full border-0 border-b px-2 py-2 text-sm" />
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button onClick={() => setMQty((q) => Math.max(1, q - 1))} className="rounded-lg border px-3 py-1 text-lg" style={{ borderColor: "var(--border)" }}>−</button>
-                <span className="w-6 text-center font-semibold">{mQty}</span>
-                <button onClick={() => setMQty((q) => q + 1)} className="rounded-lg border px-3 py-1 text-lg" style={{ borderColor: "var(--border)" }}>+</button>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button onClick={() => setMQty((q) => Math.max(1, q - 1))} className="secondary-button px-3 py-1 text-lg">-</button>
+                <span className="mono-value w-6 text-center">{mQty}</span>
+                <button onClick={() => setMQty((q) => q + 1)} className="secondary-button px-3 py-1 text-lg">+</button>
               </div>
-              <button onClick={confirmModal} className="rounded-lg px-5 py-2.5 font-bold text-black" style={{ background: "var(--accent)" }}>
-                Adicionar · {brl(unitPrice(modal, mVar, mAddons) * mQty)}
+              <button onClick={confirmModal} className="stamp-button px-5 py-3 text-sm">
+                Adicionar - {brl(unitPrice(modal, mVar, mAddons) * mQty)}
               </button>
             </div>
           </div>

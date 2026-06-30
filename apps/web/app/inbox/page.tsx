@@ -10,7 +10,7 @@ type Conv = {
 };
 
 const STATUS_LABEL: Record<string, string> = { BOT: "IA", HUMAN: "Humano", WAITING: "Aguardando", CLOSED: "Fechada" };
-const STATUS_COLOR: Record<string, string> = { BOT: "var(--accent)", HUMAN: "#60a5fa", WAITING: "var(--accent-warn)", CLOSED: "var(--muted)" };
+const STATUS_STAMP: Record<string, string> = { BOT: "stamp-green", HUMAN: "stamp-blue", WAITING: "stamp-yellow", CLOSED: "stamp-red" };
 
 export default function InboxPage() {
   const [convs, setConvs] = useState<Conv[]>([]);
@@ -41,50 +41,56 @@ export default function InboxPage() {
     loadMsgs(active.id);
   }
 
+  const bubbleClass = (m: Msg) => {
+    if (m.sender === "CLIENT") return "chat-bubble-client";
+    if (m.sender === "BOT" || m.sender === "AI") return "chat-bubble-ai";
+    return "chat-bubble-human";
+  };
+
   return (
-    <div className="flex h-[calc(100vh-3rem)] gap-4">
-      {/* Lista de conversas */}
-      <div className="w-72 overflow-auto rounded-xl border" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-        <div className="border-b p-3 text-sm font-semibold" style={{ borderColor: "var(--border)" }}>Conversas</div>
-        {convs.length === 0 && <p className="p-3 text-sm" style={{ color: "var(--muted)" }}>Nenhuma conversa ainda.</p>}
+    <div className="flex h-[calc(100vh-3rem)] flex-col gap-4 lg:flex-row">
+      <aside className="receipt-card min-h-48 w-full overflow-auto lg:w-80">
+        <div className="receipt-header flex items-center justify-between p-3">
+          <h1 className="page-title text-xl">Inbox</h1>
+          <span className="stamp stamp-blue">{convs.length}</span>
+        </div>
+        {convs.length === 0 && <p className="p-4 text-sm muted-ink">Nenhuma conversa ainda.</p>}
         {convs.map((c) => (
-          <button key={c.id} onClick={() => setActive(c)} className="block w-full border-b p-3 text-left hover:bg-white/5"
-            style={{ borderColor: "var(--border)", background: active?.id === c.id ? "rgba(255,255,255,0.04)" : "transparent" }}>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold">{c.client.name ?? c.client.phone}</span>
-              <span className="text-[10px]" style={{ color: STATUS_COLOR[c.status] }}>● {STATUS_LABEL[c.status]}</span>
+          <button key={c.id} onClick={() => setActive(c)} className="notebook-line block w-full p-3 text-left"
+            style={{ background: active?.id === c.id ? "rgba(132, 204, 22, 0.12)" : "transparent" }}>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-black">{c.client.name ?? c.client.phone}</span>
+              <span className={`stamp ${STATUS_STAMP[c.status]}`}>{STATUS_LABEL[c.status]}</span>
             </div>
-            <div className="truncate text-xs" style={{ color: "var(--muted)" }}>{c.messages[0]?.content ?? ""}</div>
+            <div className="mt-1 truncate text-xs muted-ink">{c.messages[0]?.content ?? ""}</div>
           </button>
         ))}
-      </div>
+      </aside>
 
-      {/* Thread */}
-      <div className="flex flex-1 flex-col rounded-xl border" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+      <section className="receipt-card flex min-h-0 flex-1 flex-col">
         {!active ? (
-          <div className="flex flex-1 items-center justify-center text-sm" style={{ color: "var(--muted)" }}>Selecione uma conversa</div>
+          <div className="flex flex-1 items-center justify-center p-6 text-sm muted-ink">Selecione uma conversa na lista de papel.</div>
         ) : (
           <>
-            <div className="flex items-center justify-between border-b p-3" style={{ borderColor: "var(--border)" }}>
+            <div className="receipt-header flex flex-wrap items-center justify-between gap-3 p-3">
               <div>
-                <div className="text-sm font-semibold">{active.client.name ?? active.client.phone}</div>
-                <div className="text-xs" style={{ color: "var(--muted)" }}>{active.client.phone}
-                  {active.client.tags?.map((t) => <span key={t} className="ml-1 rounded px-1.5 py-0.5 text-[10px]" style={{ background: "var(--border)" }}>{t}</span>)}
+                <h2 className="text-sm font-black">{active.client.name ?? active.client.phone}</h2>
+                <div className="text-xs muted-ink">{active.client.phone}
+                  {active.client.tags?.map((t) => <span key={t} className="stamp stamp-blue ml-1">{t}</span>)}
                 </div>
               </div>
               {active.status === "BOT"
-                ? <button onClick={takeover} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-black" style={{ background: "var(--accent)" }}>Assumir conversa</button>
-                : <button onClick={release} className="rounded-lg border px-3 py-1.5 text-xs font-semibold" style={{ borderColor: "var(--border)", color: "var(--accent)" }}>Devolver à IA</button>}
+                ? <button onClick={takeover} className="stamp-button px-3 py-2 text-xs">Assumir conversa</button>
+                : <button onClick={release} className="secondary-button px-3 py-2 text-xs">Devolver a IA</button>}
             </div>
 
-            <div className="flex-1 overflow-auto p-4">
+            <div className="min-h-0 flex-1 overflow-auto p-4">
               {msgs.map((m) => {
                 const mine = m.sender !== "CLIENT";
                 return (
-                  <div key={m.id} className={`mb-2 flex ${mine ? "justify-end" : "justify-start"}`}>
-                    <div className="max-w-[75%] rounded-2xl px-3 py-2 text-sm"
-                      style={{ background: mine ? "var(--accent)" : "var(--border)", color: mine ? "#000" : "var(--text)" }}>
-                      {m.sender === "HUMAN" && <div className="text-[10px] opacity-70">atendente</div>}
+                  <div key={m.id} className={`mb-3 flex ${mine ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[78%] rounded-lg border px-3 py-2 text-sm shadow-sm ${bubbleClass(m)}`} style={{ borderColor: "var(--border)" }}>
+                      {m.sender === "HUMAN" && <div className="text-[10px] font-bold uppercase opacity-70">atendente</div>}
                       {m.content}
                     </div>
                   </div>
@@ -93,15 +99,15 @@ export default function InboxPage() {
               <div ref={endRef} />
             </div>
 
-            <div className="flex gap-2 border-t p-3" style={{ borderColor: "var(--border)" }}>
+            <div className="receipt-divider flex gap-2 p-3">
               <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()}
-                placeholder={active.status === "BOT" ? "Assuma a conversa para responder…" : "Escreva uma mensagem…"}
-                className="flex-1 rounded-lg border bg-transparent px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }} />
-              <button onClick={send} className="rounded-lg px-4 py-2 text-sm font-semibold text-black" style={{ background: "var(--accent)" }}>Enviar</button>
+                placeholder={active.status === "BOT" ? "Assuma a conversa para responder..." : "Escreva uma mensagem..."}
+                className="flex-1 border-0 border-b px-2 py-2 text-sm" />
+              <button onClick={send} className="stamp-button px-4 py-2 text-sm">Enviar</button>
             </div>
           </>
         )}
-      </div>
+      </section>
     </div>
   );
 }

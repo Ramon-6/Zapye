@@ -14,20 +14,29 @@ export default function LoginPage() {
       await login(email, password);
       window.location.href = "/dashboard";
     } catch {
-      setErr("Credenciais inválidas");
+      setErr("Credenciais invalidas");
     }
   }
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center">
-      <form onSubmit={submit} className="w-80 rounded-xl border p-6" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-        <div className="mb-4 text-xl font-bold">ZAPYE <span style={{ color: "var(--accent)" }}>Food</span></div>
-        <input className="mb-2 w-full rounded-lg border bg-transparent px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}
-          placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" className="mb-3 w-full rounded-lg border bg-transparent px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}
-          placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
-        {err && <p className="mb-2 text-xs" style={{ color: "var(--accent-warn)" }}>{err}</p>}
-        <button className="w-full rounded-lg py-2 text-sm font-semibold text-black" style={{ background: "var(--accent)" }}>Entrar</button>
+    <div className="login-table flex min-h-screen items-center justify-center p-5">
+      <form onSubmit={submit} className="receipt-card w-full max-w-md p-7">
+        <div className="food-thumb mb-5 h-36 w-full" />
+        <div className="mb-6 text-center">
+          <div className="brand-wordmark text-5xl">ZAPYE<br /><span className="brand-food">Food</span></div>
+          <p className="mt-3 text-sm muted-ink">Entre para vender, acompanhar pedidos e cuidar da cozinha em tempo real.</p>
+        </div>
+        <label className="mb-3 block text-xs font-bold uppercase muted-ink">
+          E-mail
+          <input className="mt-1 w-full border-0 border-b px-0 py-2 text-sm" placeholder="admin@zapyefood.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </label>
+        <label className="mb-4 block text-xs font-bold uppercase muted-ink">
+          Senha
+          <input type="password" className="mt-1 w-full border-0 border-b px-0 py-2 text-sm" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
+        </label>
+        {err && <p className="highlight-note mb-3 p-2 text-xs">{err}</p>}
+        <button className="stamp-button w-full px-4 py-3 text-sm">Entrar</button>
+        <div className="receipt-divider mt-5 pt-4 text-center text-xs muted-ink">Gestao food rapida para restaurantes locais</div>
       </form>
     </div>
   );

@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
+import { authGuard } from "../lib/auth.js";
 
 const hash = (s: string) => createHash("sha256").update(s).digest("hex");
 
@@ -21,6 +22,13 @@ export async function authRoutes(app: FastifyInstance) {
       { sub: user.id, restaurantId: user.restaurantId, role: user.role },
       { expiresIn: "7d" },
     );
-    return { token, user: { id: user.id, name: user.name, role: user.role } };
+    return { token, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+  });
+
+  app.get("/auth/me", { preHandler: [authGuard] }, async (req) => {
+    const { sub } = req.user as any;
+    const user = await prisma.user.findUnique({ where: { id: sub }, select: { id: true, name: true, email: true, role: true } });
+    if (!user) throw new Error("usuário não encontrado");
+    return user;
   });
 }

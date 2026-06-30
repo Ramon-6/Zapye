@@ -1,19 +1,529 @@
+@import url("https://fonts.googleapis.com/css2?family=Port+Lligat+Sans&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg: #0a0a0a;
-  --surface: #141414;
-  --border: #262626;
-  --text: #fafafa;
-  --muted: #a3a3a3;
-  --accent: #22c55e; /* verde discreto */
-  --accent-warn: #eab308; /* amarelo */
+  --bg: #f9e4dd;
+  --bg-soft: #f9e4dd;
+  --surface: #ffffff;
+  --surface-strong: #f9e4dd;
+  --surface-tint: #fff8f6;
+  --border: rgba(17, 17, 17, 0.11);
+  --text: #111111;
+  --muted: rgba(17, 17, 17, 0.58);
+  --accent: #cd6346;
+  --accent-dark: #9f4630;
+  --accent-soft: #f9e4dd;
+  --accent-warn: #cd6346;
+  --danger: #cd6346;
+  --info: #cd6346;
+  --green: #88bbaf;
+  --green-soft: rgba(136, 187, 175, 0.25);
+  --shadow-paper: 0 12px 28px rgba(17, 17, 17, 0.08), 0 2px 8px rgba(17, 17, 17, 0.04);
+  --shadow-ticket: 0 8px 20px rgba(17, 17, 17, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--bg);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(205, 99, 70, 0.13), transparent 34rem),
+    radial-gradient(circle at 86% 8%, rgba(136, 187, 175, 0.22), transparent 26rem),
+    linear-gradient(180deg, #fff8f6, var(--bg) 58%, #f9e4dd);
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: "Port Lligat Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+::selection {
+  background: rgba(205, 99, 70, 0.24);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, opacity 180ms ease, border-color 180ms ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-0.5px);
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input,
+select,
+textarea {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  border-radius: 10px !important;
+  color: var(--text);
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(205, 99, 70, 0.65) !important;
+  box-shadow: 0 0 0 4px rgba(205, 99, 70, 0.12);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(17, 17, 17, 0.42);
+}
+
+option {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.brand-wordmark {
+  color: var(--text);
+  font-family: "Port Lligat Sans", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 0.95;
+}
+
+.brand-food {
+  color: var(--accent);
+}
+
+.logo-ticket {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.logo-ticket::before {
+  content: "";
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #fff url("/brand/zapye-food-icon.svg") center / 43px 43px no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08), 0 6px 14px rgba(17, 17, 17, 0.08);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 43px 43px;
+}
+
+.app-sidebar {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(249,228,221,0.32)),
+    var(--surface);
+  box-shadow: inset -1px 0 rgba(17, 17, 17, 0.10);
+  backdrop-filter: blur(12px);
+}
+
+.nav-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.nav-tab-active {
+  border-color: transparent;
+  background: linear-gradient(180deg, #cd6346, #b9583f);
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(205, 99, 70, 0.18);
+}
+
+.page-title {
+  color: var(--text);
+  font-family: "Port Lligat Sans", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.page-intro,
+.muted-ink {
+  color: var(--muted);
+}
+
+.receipt-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.055), 0 1px 4px rgba(17, 17, 17, 0.035);
+}
+
+.receipt-card::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.8), transparent 48%);
+  opacity: 0;
+}
+
+.receipt-card > *,
+.ticket-card > *,
+.order-ticket > * {
+  position: relative;
+  z-index: 1;
+}
+
+.receipt-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.receipt-divider {
+  border-top: 1px solid var(--border);
+}
+
+.ticket-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 7px 18px rgba(17, 17, 17, 0.045);
+}
+
+.price,
+.mono-value {
+  color: var(--accent-dark);
+  font-family: "Port Lligat Sans", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.handwrite {
+  font-family: "Port Lligat Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: none;
+  opacity: 1;
+}
+
+.stamp-blue {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.stamp-yellow {
+  background: rgba(136, 187, 175, 0.25);
+  color: #111111;
+}
+
+.stamp-green {
+  background: var(--green-soft);
+  color: #335f55;
+}
+
+.stamp-red {
+  background: var(--accent-soft);
+  color: var(--danger);
+}
+
+.stamp-button {
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: linear-gradient(180deg, #cd6346, #b9583f) !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+  box-shadow: 0 10px 20px rgba(205, 99, 70, 0.20);
+}
+
+.stamp-big {
+  min-width: 86px;
+  min-height: 46px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+.secondary-button {
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: var(--text) !important;
+  font-weight: 800;
+  box-shadow: 0 6px 16px rgba(17, 17, 17, 0.04);
+}
+
+.notebook-line {
+  border-bottom: 1px solid var(--border);
+}
+
+.kanban-column {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff8f6;
+  box-shadow: none;
+}
+
+.kanban-clip {
+  position: relative;
+}
+
+.kanban-clip::before {
+  content: "";
+  position: absolute;
+  left: 22px;
+  top: -6px;
+  z-index: 2;
+  width: 46px;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), #88bbaf);
+  box-shadow: 0 9px 18px rgba(205, 99, 70, 0.16);
+}
+
+.order-ticket {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(17, 17, 17, 0.045);
+}
+
+.highlight-note {
+  border-radius: 16px;
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.chat-bubble-client {
+  background: #fff;
+  color: var(--text);
+}
+
+.chat-bubble-ai {
+  background: var(--green-soft);
+  color: var(--text);
+}
+
+.chat-bubble-human {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.graph-paper {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,249,240,0.92)),
+    repeating-linear-gradient(90deg, rgba(17, 17, 17, 0.08) 0 1px, transparent 1px 44px);
+}
+
+.food-thumb,
+.food-photo {
+  border: 0;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: none;
+}
+
+.food-postit-card {
+  isolation: isolate;
+  position: relative;
+  min-height: 184px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 6px 17px rgba(0, 0, 0, 0.13), 0 4px 4px rgba(0, 0, 0, 0.10);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.food-postit-card:active {
+  transform: scale(0.985);
+}
+
+.food-postit-image {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: -48px;
+  width: min(112%, 191px);
+  height: 116px;
+  transform: translateX(-50%);
+  object-fit: contain;
+  filter: drop-shadow(0 10px 12px rgba(17, 17, 17, 0.18));
+}
+
+.food-postit-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: 184px;
+  flex-direction: column;
+  padding: 70px 10px 10px;
+}
+
+.food-postit-title {
+  display: -webkit-box;
+  min-height: 38px;
+  overflow: hidden;
+  color: #111;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1.18;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.food-postit-desc {
+  display: -webkit-box;
+  min-height: 30px;
+  margin-top: 4px;
+  overflow: hidden;
+  color: rgba(17, 17, 17, 0.58);
+  font-size: 0.77rem;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.food-postit-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.food-postit-rating {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  color: #f1c40f;
+  font-size: 0.74rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.food-postit-rating span {
+  margin-left: 4px;
+  color: #111;
+}
+
+.food-postit-price {
+  margin-top: 5px;
+  color: var(--accent);
+  font-size: 1.08rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.food-postit-add {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 15px;
+  background: #111 !important;
+  color: #fff;
+  box-shadow: 0 12px 20px rgba(17, 17, 17, 0.16);
+}
+
+.compact-table {
+  font-size: 0.78rem;
+}
+
+.dark-board {
+  background:
+    radial-gradient(circle at 14% 14%, rgba(205, 99, 70, 0.16), transparent 30%),
+    radial-gradient(circle at 88% 20%, rgba(136, 187, 175, 0.22), transparent 28%),
+    linear-gradient(135deg, #1f1713, #120f0d 58%, #090807);
+}
+
+.login-table {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(205, 99, 70, 0.18), transparent 24rem),
+    radial-gradient(circle at 82% 20%, rgba(136, 187, 175, 0.20), transparent 24rem),
+    linear-gradient(135deg, #ffffff, #f9e4dd 52%, #fff8f6);
+}
+
+.receipt-phone {
+  border: 10px solid #231814;
+  border-radius: 34px;
+  background: var(--bg);
+  box-shadow: 0 24px 50px rgba(17, 17, 17, 0.24);
+}
+
+@media (max-width: 768px) {
+  main {
+    padding: 1rem;
+  }
+
+  .receipt-card,
+  .ticket-card,
+  .order-ticket,
+  .kanban-column {
+    border-radius: 14px;
+  }
+}
+
+.sidebar-restaurant-card,
+.sidebar-admin-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
+}
+
+.dashboard-control {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(17, 17, 17, 0.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
