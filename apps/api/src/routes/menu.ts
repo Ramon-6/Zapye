@@ -7,7 +7,6 @@ import { todaySP } from "../lib/date.js";
 export async function menuRoutes(app: FastifyInstance) {
   app.addHook("preHandler", authGuard);
 
-  // ---- Categorias (com produtos + adicionais, para gestão) ----
   app.get("/menu/categories", async (req) =>
     prisma.menuCategory.findMany({
       where: { restaurantId: tenantId(req) },
@@ -21,7 +20,6 @@ export async function menuRoutes(app: FastifyInstance) {
     }),
   );
 
-  // Data de hoje (SP) — a UI usa p/ saber se o item diário está ativo hoje
   app.get("/menu/today", async () => ({ today: todaySP() }));
 
   app.post("/menu/categories", async (req) => {
@@ -29,7 +27,6 @@ export async function menuRoutes(app: FastifyInstance) {
     return prisma.menuCategory.create({ data: { ...body, restaurantId: tenantId(req) } });
   });
 
-  // ---- Produtos ----
   app.post("/menu/products", async (req) => {
     const body = z.object({
       categoryId: z.string(), name: z.string().min(1), description: z.string().optional(),
@@ -42,7 +39,7 @@ export async function menuRoutes(app: FastifyInstance) {
   app.patch("/menu/products/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
     const owned = await prisma.product.findFirst({ where: { id, restaurantId: tenantId(req) } });
-    if (!owned) return reply.code(404).send({ error: "produto não encontrado" });
+    if (!owned) return reply.code(404).send({ error: "produto nao encontrado" });
 
     const body = z.object({
       name: z.string().optional(), description: z.string().optional(), ingredients: z.string().optional(),
@@ -53,16 +50,28 @@ export async function menuRoutes(app: FastifyInstance) {
     return prisma.product.update({ where: { id }, data: body });
   });
 
-  // ---- Cardápio do dia ----
-  // Marca um produto como disponível hoje (e ativo).
+  app.delete("/menu/products/:id", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const owned = await prisma.product.findFirst({
+      where: { id, restaurantId: tenantId(req) },
+      include: { cartItems: { take: 1 } },
+    });
+    if (!owned) return reply.code(404).send({ error: "produto nao encontrado" });
+    if (owned.cartItems.length > 0) {
+      await prisma.product.update({ where: { id }, data: { active: false } });
+      return { ok: true, archived: true };
+    }
+    await prisma.product.delete({ where: { id } });
+    return { ok: true, deleted: true };
+  });
+
   app.post("/menu/products/:id/available-today", async (req, reply) => {
     const { id } = req.params as { id: string };
     const owned = await prisma.product.findFirst({ where: { id, restaurantId: tenantId(req) } });
-    if (!owned) return reply.code(404).send({ error: "produto não encontrado" });
+    if (!owned) return reply.code(404).send({ error: "produto nao encontrado" });
     return prisma.product.update({ where: { id }, data: { availableDate: todaySP(), active: true } });
   });
 
-  // Ativa TODOS os itens diários para hoje (botão "Ativar cardápio do dia").
   app.post("/menu/day/activate-all", async (req) => {
     const res = await prisma.product.updateMany({
       where: { restaurantId: tenantId(req), isDaily: true },
@@ -71,7 +80,6 @@ export async function menuRoutes(app: FastifyInstance) {
     return { activated: res.count, today: todaySP() };
   });
 
-  // Limpa o cardápio do dia (itens diários deixam de aparecer).
   app.post("/menu/day/clear", async (req) => {
     const res = await prisma.product.updateMany({
       where: { restaurantId: tenantId(req), isDaily: true },
@@ -80,20 +88,18 @@ export async function menuRoutes(app: FastifyInstance) {
     return { cleared: res.count };
   });
 
-  // Remove adicional.
   app.delete("/menu/addons/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
     const owned = await prisma.productAddon.findFirst({ where: { id, product: { restaurantId: tenantId(req) } } });
-    if (!owned) return reply.code(404).send({ error: "adicional não encontrado" });
+    if (!owned) return reply.code(404).send({ error: "adicional nao encontrado" });
     await prisma.productAddon.delete({ where: { id } });
     return { ok: true };
   });
 
-  // ---- Adicionais ----
   app.post("/menu/products/:id/addons", async (req, reply) => {
     const { id } = req.params as { id: string };
     const owned = await prisma.product.findFirst({ where: { id, restaurantId: tenantId(req) } });
-    if (!owned) return reply.code(404).send({ error: "produto não encontrado" });
+    if (!owned) return reply.code(404).send({ error: "produto nao encontrado" });
 
     const body = z.object({
       name: z.string().min(1), price: z.number().default(0),
