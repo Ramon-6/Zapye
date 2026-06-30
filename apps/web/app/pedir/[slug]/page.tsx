@@ -184,22 +184,22 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
       </section>
 
       <div className="no-scrollbar flex gap-2 overflow-x-auto px-5 py-4 text-xs font-bold">
-        {["Todos", ...menu.map((c) => c.name)].slice(0, 6).map((c, i) => (
-          <button key={`${c}-${i}`} className={i === 0 ? "rounded-full bg-[#fb3f10] px-5 py-2 text-white" : "rounded-full bg-[#f3eee8] px-5 py-2"}>{c}</button>
+        {["Todos", "Lanches", "Pizzas", "Porcoes", "Bebidas"].map((c, i) => (
+          <button key={`${c}-${i}`} className={i === 0 ? "rounded-full bg-[#fb3f10] px-5 py-2.5 text-white shadow-[0_8px_16px_rgba(251,63,16,.18)]" : "rounded-full bg-[#f3eee8] px-5 py-2.5 text-[#1d1814]"}>{c}</button>
         ))}
       </div>
 
       <section className="px-5">
         <div className="grid gap-3">
           {products.map((p) => (
-            <article key={p.id} className="flex h-[118px] gap-4 rounded-[14px] border border-[#eee0d2] bg-white p-3 shadow-[0_4px_12px_rgba(64,43,24,.05)]">
-              <img src={imageFor(p.name)} alt={p.name} className="h-[92px] w-[108px] shrink-0 rounded-[12px] object-cover" />
-              <div className="min-w-0 flex-1 pr-1">
-                <h3 className="max-w-[128px] text-[1.05rem] font-extrabold leading-[1.12]">{p.name}</h3>
-                {p.description && <p className="mt-2 line-clamp-2 max-w-[120px] text-sm leading-relaxed muted-ink">{p.description}</p>}
-                <div className="mt-2 text-lg font-extrabold text-[#fb3f10]">{brl(p.price)}</div>
+            <article key={p.id} className="flex h-[120px] gap-4 rounded-[16px] border border-[#eee0d2] bg-white p-3 shadow-[0_8px_22px_rgba(64,43,24,.055)] transition duration-200 active:scale-[0.985]">
+              <img src={imageFor(p.name)} alt={p.name} className="h-24 w-[108px] shrink-0 rounded-[13px] object-cover" />
+              <div className="relative min-w-0 flex-1 self-stretch pr-12">
+                <h3 className="line-clamp-2 max-w-[142px] text-[1.08rem] font-extrabold leading-[1.12] text-[#191513]">{p.name}</h3>
+                {p.description && <p className="mt-1.5 line-clamp-1 max-w-[132px] text-[0.82rem] leading-[1.35] muted-ink">{p.description}</p>}
+                <div className="absolute bottom-0 left-0 text-[1.08rem] font-extrabold text-[#fb3f10]">{brl(p.price)}</div>
               </div>
-              <button onClick={() => openProduct(p)} className="my-auto grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#fb3f10] text-white"><Plus size={26} /></button>
+              <button onClick={() => openProduct(p)} className="my-auto -ml-12 grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#fb3f10] text-white shadow-[0_10px_18px_rgba(251,63,16,.22)] transition duration-200 active:scale-95"><Plus size={26} /></button>
             </article>
           ))}
         </div>
@@ -268,12 +268,12 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
         )}
 
         <div className="fixed inset-x-0 bottom-16 z-50 mx-auto max-w-md px-5">
-          <div className="flex h-[60px] items-center gap-3 rounded-[16px] bg-[#67af09] p-2 text-white shadow-[0_16px_36px_rgba(64,43,24,.14)]">
+          <div className="flex h-[60px] items-center gap-3 rounded-[18px] bg-[#67af09] p-2 text-white shadow-[0_18px_38px_rgba(64,43,24,.16)]">
             <div className="flex flex-1 items-center gap-2 pl-3 text-sm font-extrabold">
               <ShoppingCart size={22} />
               <span>{cart.reduce((s, l) => s + l.quantity, 0)} itens<br />{brl(total)}</span>
             </div>
-            <button onClick={() => setCheckoutOpen(true)} className="flex h-12 flex-[1.45] items-center justify-center gap-2 rounded-[13px] bg-[#fb3f10] text-sm font-extrabold">
+            <button onClick={() => setCheckoutOpen(true)} className="flex h-12 flex-[1.45] items-center justify-center gap-2 rounded-[14px] bg-[#fb3f10] text-sm font-extrabold shadow-[0_8px_18px_rgba(114,31,10,.18)] transition duration-200 active:scale-[0.98]">
               Finalizar pedido <ChevronRight size={18} />
             </button>
           </div>
