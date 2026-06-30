@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, use } from "react";
 import QRCode from "qrcode";
-import { ChevronRight, Heart, Home, Menu, Plus, ReceiptText, ShoppingCart, User } from "lucide-react";
+import { ChevronRight, Heart, Home, Menu, Plus, ReceiptText, ShoppingCart, Star, User } from "lucide-react";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 async function get(path: string) { const r = await fetch(`${BASE}${path}`); if (!r.ok) throw new Error(await r.text()); return r.json(); }
@@ -41,6 +41,14 @@ function imageFor(name: string) {
   if (n.includes("batata")) return "/food/fries.png";
   if (n.includes("coca") || n.includes("cola")) return "/food/coke.png";
   return "/food/burger-classic.png";
+}
+
+function ratingFor(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes("bacon")) return "4.9";
+  if (n.includes("batata")) return "4.7";
+  if (n.includes("coca") || n.includes("cola")) return "4.6";
+  return "4.8";
 }
 
 export default function PedirPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ c?: string }> }) {
@@ -189,17 +197,27 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
         ))}
       </div>
 
-      <section className="px-5">
-        <div className="grid gap-3">
+      <section className="px-5 pt-12">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-10">
           {products.map((p) => (
-            <article key={p.id} className="flex h-[120px] gap-4 rounded-[16px] border border-[rgba(17,17,17,.10)] bg-white p-3 shadow-[0_8px_22px_rgba(17,17,17,.05)] transition duration-200 active:scale-[0.985]">
-              <img src={imageFor(p.name)} alt={p.name} className="h-24 w-[108px] shrink-0 rounded-[13px] object-cover" />
-              <div className="relative min-w-0 flex-1 self-stretch pr-12">
-                <h3 className="line-clamp-2 max-w-[142px] text-[1.08rem] font-extrabold leading-[1.12] text-[#111111]">{p.name}</h3>
-                {p.description && <p className="mt-1.5 line-clamp-1 max-w-[132px] text-[0.82rem] leading-[1.35] muted-ink">{p.description}</p>}
-                <div className="absolute bottom-0 left-0 text-[1.08rem] font-extrabold text-[#CD6346]">{brl(p.price)}</div>
+            <article key={p.id} className="food-postit-card">
+              <img src={imageFor(p.name)} alt={p.name} className="food-postit-image" />
+              <div className="food-postit-body">
+                <h3 className="food-postit-title">{p.name}</h3>
+                {p.description && <p className="food-postit-desc">{p.description}</p>}
+                <div className="food-postit-footer">
+                  <div>
+                    <div className="food-postit-rating" aria-label={`Nota ${ratingFor(p.name)}`}>
+                      {[0, 1, 2, 3, 4].map((i) => <Star key={i} size={12} fill="currentColor" strokeWidth={0} />)}
+                      <span>{ratingFor(p.name)}</span>
+                    </div>
+                    <div className="food-postit-price">{brl(p.price)}</div>
+                  </div>
+                  <button onClick={() => openProduct(p)} className="food-postit-add" aria-label={`Adicionar ${p.name}`}>
+                    <Plus size={22} strokeWidth={2.4} />
+                  </button>
+                </div>
               </div>
-              <button onClick={() => openProduct(p)} className="my-auto -ml-12 grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#CD6346] text-white shadow-[0_10px_18px_rgba(205,99,70,.22)] transition duration-200 active:scale-95"><Plus size={26} /></button>
             </article>
           ))}
         </div>
