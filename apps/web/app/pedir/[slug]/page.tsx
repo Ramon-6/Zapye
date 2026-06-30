@@ -12,7 +12,7 @@ async function post(path: string, body: any) {
 const brl = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
 
 type Addon = { id: string; name: string; price: number };
-type Product = { id: string; name: string; description: string | null; price: number; addons: Addon[]; variations: { id: string; name: string; price: number }[] };
+type Product = { id: string; name: string; description: string | null; price: number; imageUrl?: string | null; addons: Addon[]; variations: { id: string; name: string; price: number }[] };
 type Category = { id: string; name: string; products: Product[] };
 type CartLine = { key: string; product: Product; variationId?: string; addonIds: string[]; quantity: number; notes?: string; unit: number };
 const DEMO_MENU: Category[] = [
@@ -43,6 +43,8 @@ function imageFor(name: string) {
   return "/food/burger-classic.png";
 }
 
+function productImage(p: Product) { return p.imageUrl || imageFor(p.name); }
+
 function ratingFor(name: string) {
   const n = name.toLowerCase();
   if (n.includes("bacon")) return "4.9";
@@ -69,6 +71,7 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
   const [paid, setPaid] = useState(false);
   const [modal, setModal] = useState<Product | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("Todos");
   const [mVar, setMVar] = useState<string>(); const [mAddons, setMAddons] = useState<string[]>([]);
   const [mQty, setMQty] = useState(1); const [mNotes, setMNotes] = useState("");
 
@@ -82,7 +85,11 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
   const zoneFee = useMemo(() => zones.find((z) => z.neighborhood === neighborhood)?.fee ?? 0, [zones, neighborhood]);
   const subtotal = useMemo(() => cart.reduce((s, l) => s + l.unit * l.quantity, 0), [cart]);
   const total = subtotal + (deliveryType === "ENTREGA" ? zoneFee : 0);
-  const products = useMemo(() => menu.flatMap((c) => c.products), [menu]);
+  const categories = useMemo(() => ["Todos", ...menu.map((c) => c.name)], [menu]);
+  const products = useMemo(() => {
+    if (activeCategory === "Todos") return menu.flatMap((c) => c.products);
+    return menu.find((c) => c.name === activeCategory)?.products ?? [];
+  }, [activeCategory, menu]);
 
   function unitPrice(p: Product, variationId?: string, addonIds: string[] = []) {
     return (variationId ? p.variations.find((v) => v.id === variationId)?.price ?? p.price : p.price)
@@ -191,9 +198,15 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
         <img src="/food/hero-burger-fries.png" alt="Burger com fritas" className="h-full w-full object-cover" />
       </section>
 
+      {!info?.isOpen && (
+        <div className="mx-5 mt-4 rounded-[16px] bg-[#F9E4DD] p-3 text-sm font-bold text-[#111111]">
+          Loja fechada agora. Voce pode montar o pedido, mas o envio fica bloqueado ate abrir.
+        </div>
+      )}
+
       <div className="no-scrollbar flex gap-2 overflow-x-auto px-5 py-4 text-xs font-bold">
-        {["Todos", "Lanches", "Pizzas", "Porcoes", "Bebidas"].map((c, i) => (
-          <button key={`${c}-${i}`} className={i === 0 ? "rounded-full bg-[#CD6346] px-5 py-2.5 text-white shadow-[0_8px_16px_rgba(205,99,70,.18)]" : "rounded-full bg-[#F9E4DD] px-5 py-2.5 text-[#111111]"}>{c}</button>
+        {categories.map((c) => (
+          <button key={c} onClick={() => setActiveCategory(c)} className={activeCategory === c ? "rounded-full bg-[#CD6346] px-5 py-2.5 text-white shadow-[0_8px_16px_rgba(205,99,70,.18)]" : "rounded-full bg-[#F9E4DD] px-5 py-2.5 text-[#111111]"}>{c}</button>
         ))}
       </div>
 
@@ -201,7 +214,7 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
         <div className="grid grid-cols-2 gap-x-3 gap-y-10">
           {products.map((p) => (
             <article key={p.id} className="food-postit-card">
-              <img src={imageFor(p.name)} alt={p.name} className="food-postit-image" />
+              <img src={productImage(p)} alt={p.name} className="food-postit-image" />
               <div className="food-postit-body">
                 <h3 className="food-postit-title">{p.name}</h3>
                 {p.description && <p className="food-postit-desc">{p.description}</p>}
@@ -278,7 +291,7 @@ export default function PedirPage({ params, searchParams }: { params: Promise<{ 
             )}
 
             {err && <p className="highlight-note mt-2 p-2 text-xs">{err}</p>}
-            <button onClick={place} disabled={placing || !name || !phone} className="stamp-button mt-3 flex w-full items-center justify-center gap-2 px-4 py-4 text-sm disabled:opacity-50">
+            <button onClick={place} disabled={placing || !name || !phone || !info?.isOpen} className="stamp-button mt-3 flex w-full items-center justify-center gap-2 px-4 py-4 text-sm disabled:opacity-50">
               {placing ? "Enviando..." : <>Enviar pedido - {brl(total)} <ChevronRight size={18} /></>}
             </button>
           </div>

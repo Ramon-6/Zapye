@@ -15,6 +15,14 @@ const COLUMNS = [
   { key: "FINALIZADO", label: "Finalizados", stamp: "stamp-green" },
 ];
 const NOVO_GROUP = ["NOVO", "CONFIRMANDO", "AGUARDANDO_PIX", "AGUARDANDO_VALIDACAO_HUMANA", "PAGO"];
+const NEXT_STATUS: Record<string, { status: string; label: string }> = {
+  NOVO: { status: "EM_PREPARO", label: "Iniciar preparo" },
+  CONFIRMANDO: { status: "EM_PREPARO", label: "Confirmar e preparar" },
+  PAGO: { status: "EM_PREPARO", label: "Iniciar preparo" },
+  EM_PREPARO: { status: "PRONTO", label: "Marcar pronto" },
+  PRONTO: { status: "SAIU_PARA_ENTREGA", label: "Saiu p/ entrega" },
+  SAIU_PARA_ENTREGA: { status: "FINALIZADO", label: "Finalizar" },
+};
 const DEMO_ORDERS: Order[] = [
   { id: "demo-1025", code: 1025, status: "NOVO", total: 68, client: { name: "Mesa 05" }, items: [{ productName: "X-Burger Classico", quantity: 1 }, { productName: "Coca-Cola Lata", quantity: 1 }] },
   { id: "demo-1026", code: 1026, status: "NOVO", total: 45, client: { name: "Balcao" }, items: [{ productName: "Pizza Calabresa", quantity: 1 }] },
@@ -29,9 +37,11 @@ export default function PedidosPage() {
   const [orders, setOrders] = useState<Order[]>(DEMO_ORDERS);
   const [open, setOpen] = useState<boolean | null>(true);
   const [demo, setDemo] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
-    api<Order[]>("/orders?today=true").then((data) => { if (data.length) { setOrders(data); setDemo(false); } }).catch(() => setDemo(true));
+    api<Order[]>("/orders?today=true").then((data) => { setOrders(data); setDemo(false); setError(null); }).catch((e) => { setDemo(true); setError(e.message); });
     api<{ settings?: { isOpen: boolean } }>("/settings").then((r) => setOpen(r.settings?.isOpen ?? false)).catch(() => {});
   }, []);
 
@@ -40,7 +50,35 @@ export default function PedidosPage() {
   async function toggleStore() {
     const next = !open;
     setOpen(next);
-    await api("/settings/store-status", { method: "PATCH", body: JSON.stringify({ open: next }) });
+    try {
+      await api("/settings/store-status", { method: "PATCH", body: JSON.stringify({ open: next }) });
+      setError(null);
+    } catch (e: any) {
+      setOpen(!next);
+      setError(e.message);
+    }
+  }
+
+  async function setStatus(o: Order, status: string) {
+    setBusy(o.id);
+    try {
+      await api(`/orders/${o.id}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    }
+    setBusy(null);
+  }
+
+  async function confirmPayment(o: Order) {
+    setBusy(o.id);
+    try {
+      await api(`/orders/${o.id}/confirm-payment`, { method: "POST" });
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    }
+    setBusy(null);
   }
 
   const inColumn = (key: string) =>
@@ -57,6 +95,7 @@ export default function PedidosPage() {
           {open === null ? "..." : open ? "Loja aberta" : "Loja fechada"}
         </button>
       </div>
+      {error && <div className="highlight-note mb-4 p-3 text-sm">Nao consegui sincronizar com a API: {error}</div>}
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
         {COLUMNS.map((col) => {
@@ -84,6 +123,25 @@ export default function PedidosPage() {
                     {o.items.reduce((s, i) => s + i.quantity, 0)} item(ns)
                   </div>
                   <span className={`stamp stamp-big mt-2 ${col.stamp}`}>{col.label}</span>
+                  {!demo && (
+                    <div className="mt-3 grid gap-2">
+                      {o.status === "AGUARDANDO_PIX" && (
+                        <button disabled={busy === o.id} onClick={() => confirmPayment(o)} className="stamp-button px-3 py-2 text-xs disabled:opacity-50">
+                          Confirmar Pix
+                        </button>
+                      )}
+                      {NEXT_STATUS[o.status] && (
+                        <button disabled={busy === o.id} onClick={() => setStatus(o, NEXT_STATUS[o.status].status)} className="stamp-button px-3 py-2 text-xs disabled:opacity-50">
+                          {NEXT_STATUS[o.status].label}
+                        </button>
+                      )}
+                      {!["FINALIZADO", "CANCELADO"].includes(o.status) && (
+                        <button disabled={busy === o.id} onClick={() => setStatus(o, "CANCELADO")} className="secondary-button px-3 py-2 text-xs disabled:opacity-50">
+                          Cancelar
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </article>
               ))}
             </section>
