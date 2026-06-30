@@ -36,9 +36,9 @@ export default function StyleGuidePage() {
         <div className="receipt-card p-5">
           <h2 className="page-title mb-4 text-2xl">Tipografia</h2>
           <div className="brand-wordmark text-5xl">ZAPYE <span className="brand-food">Food</span></div>
-          <p className="mt-4 text-sm">Inter/system para texto operacional limpo.</p>
+          <p className="mt-4 text-sm">Port Lligat Sans como tipografia principal da marca e da interface.</p>
           <p className="mono-value mt-2 text-2xl">R$ 57,80 - #1027</p>
-          <p className="mt-2 text-xs muted-ink">JetBrains Mono/Inconsolata para precos, totais e numeros de pedido.</p>
+          <p className="mt-2 text-xs muted-ink">A mesma familia tambem cobre precos, totais e numeros para manter unidade visual.</p>
         </div>
 
         <div className="receipt-card p-5">

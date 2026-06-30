@@ -1,28 +1,28 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Port+Lligat+Sans&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg: #f8efe3;
-  --bg-soft: #fff9f0;
+  --bg: #f9e4dd;
+  --bg-soft: #f9e4dd;
   --surface: #ffffff;
-  --surface-strong: #fff6eb;
-  --surface-tint: #fffaf4;
-  --border: #e9ddcf;
-  --text: #181513;
-  --muted: #80756c;
-  --accent: #fb3f10;
-  --accent-dark: #df3108;
-  --accent-soft: #fff0e9;
-  --accent-warn: #ffb31a;
-  --danger: #ef3b25;
-  --info: #f45b13;
-  --green: #6db20b;
-  --green-soft: #edf8dd;
-  --shadow-paper: 0 12px 28px rgba(64, 43, 24, 0.08), 0 2px 8px rgba(64, 43, 24, 0.05);
-  --shadow-ticket: 0 8px 20px rgba(64, 43, 24, 0.07);
+  --surface-strong: #f9e4dd;
+  --surface-tint: #fff8f6;
+  --border: rgba(17, 17, 17, 0.11);
+  --text: #111111;
+  --muted: rgba(17, 17, 17, 0.58);
+  --accent: #cd6346;
+  --accent-dark: #9f4630;
+  --accent-soft: #f9e4dd;
+  --accent-warn: #cd6346;
+  --danger: #cd6346;
+  --info: #cd6346;
+  --green: #88bbaf;
+  --green-soft: rgba(136, 187, 175, 0.25);
+  --shadow-paper: 0 12px 28px rgba(17, 17, 17, 0.08), 0 2px 8px rgba(17, 17, 17, 0.04);
+  --shadow-ticket: 0 8px 20px rgba(17, 17, 17, 0.06);
 }
 
 * {
@@ -37,16 +37,16 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 14% 0%, rgba(255, 126, 36, 0.18), transparent 34rem),
-    radial-gradient(circle at 86% 8%, rgba(111, 178, 12, 0.09), transparent 26rem),
-    linear-gradient(180deg, var(--bg-soft), var(--bg) 52%, #f8efe3);
+    radial-gradient(circle at 14% 0%, rgba(205, 99, 70, 0.13), transparent 34rem),
+    radial-gradient(circle at 86% 8%, rgba(136, 187, 175, 0.22), transparent 26rem),
+    linear-gradient(180deg, #fff8f6, var(--bg) 58%, #f9e4dd);
   color: var(--text);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Port Lligat Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   letter-spacing: 0;
 }
 
 ::selection {
-  background: rgba(255, 90, 31, 0.22);
+  background: rgba(205, 99, 70, 0.24);
 }
 
 button,
@@ -71,7 +71,7 @@ button:disabled {
 input,
 select,
 textarea {
-  background: #fffaf4 !important;
+  background: #ffffff !important;
   border-color: var(--border) !important;
   border-radius: 10px !important;
   color: var(--text);
@@ -81,13 +81,13 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: rgba(255, 90, 31, 0.65) !important;
-  box-shadow: 0 0 0 4px rgba(255, 90, 31, 0.12);
+  border-color: rgba(205, 99, 70, 0.65) !important;
+  box-shadow: 0 0 0 4px rgba(205, 99, 70, 0.12);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: rgba(138, 116, 100, 0.72);
+  color: rgba(17, 17, 17, 0.42);
 }
 
 option {
@@ -97,7 +97,7 @@ option {
 
 .brand-wordmark {
   color: var(--text);
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: "Port Lligat Sans", ui-sans-serif, system-ui, sans-serif;
   font-weight: 900;
   letter-spacing: 0;
   line-height: 0.95;
@@ -121,14 +121,14 @@ option {
   border-radius: 18px;
   background: transparent;
   box-shadow: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='54' height='54' viewBox='0 0 54 54' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M17 29c-5.5-.7-9-4.2-9-9.3 0-5.3 4.4-9.4 10-8.7 2-4.4 6.5-7 11.7-6.2 5 .7 8.7 4.1 10 8.7 5.2.3 9.3 4.1 9.3 9 0 5.3-4.7 9.1-10.3 8.8' stroke='%23fb3f10' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M17 27.5v14c0 3.3 2.7 6 6 6h9c3.3 0 6-2.7 6-6v-14' stroke='%23fb3f10' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M22 35h11M23 41h9' stroke='%23fb3f10' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='54' height='54' viewBox='0 0 54 54' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M17 29c-5.5-.7-9-4.2-9-9.3 0-5.3 4.4-9.4 10-8.7 2-4.4 6.5-7 11.7-6.2 5 .7 8.7 4.1 10 8.7 5.2.3 9.3 4.1 9.3 9 0 5.3-4.7 9.1-10.3 8.8' stroke='%23CD6346' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M17 27.5v14c0 3.3 2.7 6 6 6h9c3.3 0 6-2.7 6-6v-14' stroke='%23CD6346' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M22 35h11M23 41h9' stroke='%23CD6346' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
 .app-sidebar {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,253,249,0.96)),
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(249,228,221,0.32)),
     var(--surface);
-  box-shadow: inset -1px 0 #e6dacd;
+  box-shadow: inset -1px 0 rgba(17, 17, 17, 0.10);
   backdrop-filter: blur(12px);
 }
 
@@ -146,14 +146,14 @@ option {
 
 .nav-tab-active {
   border-color: transparent;
-  background: linear-gradient(180deg, #fb4a16, #f0370d);
+  background: linear-gradient(180deg, #cd6346, #b9583f);
   color: #fff;
-  box-shadow: 0 10px 20px rgba(251, 63, 16, 0.18);
+  box-shadow: 0 10px 20px rgba(205, 99, 70, 0.18);
 }
 
 .page-title {
   color: var(--text);
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: "Port Lligat Sans", ui-sans-serif, system-ui, sans-serif;
   font-weight: 800;
   letter-spacing: 0;
 }
@@ -166,10 +166,10 @@ option {
 .receipt-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(240, 223, 200, 0.86);
+  border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface);
-  box-shadow: 0 10px 24px rgba(64, 43, 24, 0.065), 0 1px 4px rgba(64, 43, 24, 0.04);
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.055), 0 1px 4px rgba(17, 17, 17, 0.035);
 }
 
 .receipt-card::after {
@@ -190,30 +190,30 @@ option {
 }
 
 .receipt-header {
-  border-bottom: 1px solid rgba(240, 223, 200, 0.75);
+  border-bottom: 1px solid var(--border);
 }
 
 .receipt-divider {
-  border-top: 1px solid rgba(240, 223, 200, 0.75);
+  border-top: 1px solid var(--border);
 }
 
 .ticket-card {
-  border: 1px solid rgba(240, 223, 200, 0.78);
+  border: 1px solid var(--border);
   border-radius: 12px;
   background: #fff;
-  box-shadow: 0 7px 18px rgba(64, 43, 24, 0.055);
+  box-shadow: 0 7px 18px rgba(17, 17, 17, 0.045);
 }
 
 .price,
 .mono-value {
   color: var(--accent-dark);
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: "Port Lligat Sans", ui-sans-serif, system-ui, sans-serif;
   font-weight: 800;
   letter-spacing: 0;
 }
 
 .handwrite {
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: "Port Lligat Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 .stamp {
@@ -234,32 +234,32 @@ option {
 }
 
 .stamp-blue {
-  background: #e7f0ff;
-  color: var(--info);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
 }
 
 .stamp-yellow {
-  background: #fff0c9;
-  color: #a86600;
+  background: rgba(136, 187, 175, 0.25);
+  color: #111111;
 }
 
 .stamp-green {
   background: var(--green-soft);
-  color: #15793a;
+  color: #335f55;
 }
 
 .stamp-red {
-  background: #ffe1dd;
+  background: var(--accent-soft);
   color: var(--danger);
 }
 
 .stamp-button {
   border: 0 !important;
   border-radius: 9px !important;
-  background: linear-gradient(180deg, #ff551f, var(--accent)) !important;
+  background: linear-gradient(180deg, #cd6346, #b9583f) !important;
   color: #fff !important;
   font-weight: 900 !important;
-  box-shadow: 0 10px 20px rgba(251, 63, 16, 0.20);
+  box-shadow: 0 10px 20px rgba(205, 99, 70, 0.20);
 }
 
 .stamp-big {
@@ -270,22 +270,22 @@ option {
 }
 
 .secondary-button {
-  border: 1px solid rgba(240, 223, 200, 0.9) !important;
+  border: 1px solid var(--border) !important;
   border-radius: 10px !important;
   background: rgba(255, 255, 255, 0.72) !important;
   color: var(--text) !important;
   font-weight: 800;
-  box-shadow: 0 6px 16px rgba(82, 45, 20, 0.045);
+  box-shadow: 0 6px 16px rgba(17, 17, 17, 0.04);
 }
 
 .notebook-line {
-  border-bottom: 1px solid rgba(240, 223, 200, 0.72);
+  border-bottom: 1px solid var(--border);
 }
 
 .kanban-column {
-  border: 1px solid rgba(240, 223, 200, 0.82);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fffaf3;
+  background: #fff8f6;
   box-shadow: none;
 }
 
@@ -302,21 +302,21 @@ option {
   width: 46px;
   height: 12px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent), #ffb44f);
-  box-shadow: 0 9px 18px rgba(255, 90, 31, 0.18);
+  background: linear-gradient(135deg, var(--accent), #88bbaf);
+  box-shadow: 0 9px 18px rgba(205, 99, 70, 0.16);
 }
 
 .order-ticket {
-  border: 1px solid rgba(240, 223, 200, 0.82);
+  border: 1px solid var(--border);
   border-radius: 8px;
   background: #fff;
-  box-shadow: 0 4px 12px rgba(64, 43, 24, 0.05);
+  box-shadow: 0 4px 12px rgba(17, 17, 17, 0.045);
 }
 
 .highlight-note {
   border-radius: 16px;
-  background: #fff0c9;
-  color: #8a5200;
+  background: var(--accent-soft);
+  color: var(--text);
 }
 
 .chat-bubble-client {
@@ -337,7 +337,7 @@ option {
 .graph-paper {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,249,240,0.92)),
-    repeating-linear-gradient(90deg, rgba(240, 223, 200, 0.45) 0 1px, transparent 1px 44px);
+    repeating-linear-gradient(90deg, rgba(17, 17, 17, 0.08) 0 1px, transparent 1px 44px);
 }
 
 .food-thumb,
@@ -354,23 +354,23 @@ option {
 
 .dark-board {
   background:
-    radial-gradient(circle at 14% 14%, rgba(255, 90, 31, 0.16), transparent 30%),
-    radial-gradient(circle at 88% 20%, rgba(53, 168, 83, 0.12), transparent 28%),
+    radial-gradient(circle at 14% 14%, rgba(205, 99, 70, 0.16), transparent 30%),
+    radial-gradient(circle at 88% 20%, rgba(136, 187, 175, 0.22), transparent 28%),
     linear-gradient(135deg, #1f1713, #120f0d 58%, #090807);
 }
 
 .login-table {
   background:
-    radial-gradient(circle at 20% 18%, rgba(255, 90, 31, 0.22), transparent 24rem),
-    radial-gradient(circle at 82% 20%, rgba(53, 168, 83, 0.15), transparent 24rem),
-    linear-gradient(135deg, #fff8ee, #ffe7cf 48%, #fffaf3);
+    radial-gradient(circle at 20% 18%, rgba(205, 99, 70, 0.18), transparent 24rem),
+    radial-gradient(circle at 82% 20%, rgba(136, 187, 175, 0.20), transparent 24rem),
+    linear-gradient(135deg, #ffffff, #f9e4dd 52%, #fff8f6);
 }
 
 .receipt-phone {
   border: 10px solid #231814;
   border-radius: 34px;
   background: var(--bg);
-  box-shadow: 0 24px 50px rgba(35, 24, 20, 0.28);
+  box-shadow: 0 24px 50px rgba(17, 17, 17, 0.24);
 }
 
 @media (max-width: 768px) {
@@ -391,14 +391,14 @@ option {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: #fff;
-  box-shadow: 0 8px 18px rgba(64, 43, 24, 0.04);
+  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
 }
 
 .dashboard-control {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #fff;
-  box-shadow: 0 4px 12px rgba(64, 43, 24, 0.04);
+  box-shadow: 0 4px 12px rgba(17, 17, 17, 0.04);
 }
 
 @media (prefers-reduced-motion: reduce) {
